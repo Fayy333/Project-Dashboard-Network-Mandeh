@@ -373,6 +373,9 @@ function renderBtsTowers() {
                     <a href="${earthUrl}" target="_blank" class="w-full py-2 px-3 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white rounded-xl text-xs font-bold flex items-center justify-center gap-1.5 shadow-sm transition">
                         <i class="fa-solid fa-earth-americas text-cyan-200"></i> Buka Menara di Google Earth 3D
                     </a>
+                    <a href="${getGoogleMapsDirectUrl(bts.lat, bts.lng)}" target="_blank" class="w-full py-2 px-3 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 text-white rounded-xl text-xs font-bold flex items-center justify-center gap-1.5 shadow-sm transition">
+                        <i class="fa-solid fa-location-dot text-emerald-200"></i> Buka Rute / Lokasi di Google Maps
+                    </a>
                 </div>
             </div>
         `;
@@ -435,8 +438,11 @@ function renderBtsTowersSummaryCard() {
                     <button onclick="focusToBts('${bts.id}')" class="px-2.5 py-1 bg-red-50 hover:bg-red-100 text-red-700 font-bold rounded-lg transition text-[10px] flex items-center gap-1">
                         <i class="fa-solid fa-crosshairs"></i> Lihat di Peta
                     </button>
-                    <a href="${getGoogleEarth3DUrl(bts.lat, bts.lng)}" target="_blank" class="p-1 px-2 bg-blue-50 hover:bg-blue-100 text-blue-700 rounded-lg text-[10px] font-bold transition" title="Lihat 3D">
+                    <a href="${getGoogleEarth3DUrl(bts.lat, bts.lng)}" target="_blank" class="p-1 px-2 bg-blue-50 hover:bg-blue-100 text-blue-700 rounded-lg text-[10px] font-bold transition" title="Lihat di Google Earth 3D">
                         <i class="fa-solid fa-earth-americas"></i>
+                    </a>
+                    <a href="${getGoogleMapsDirectUrl(bts.lat, bts.lng)}" target="_blank" class="p-1 px-2 bg-emerald-50 hover:bg-emerald-100 text-emerald-700 rounded-lg text-[10px] font-bold transition" title="Buka di Google Maps">
+                        <i class="fa-solid fa-location-dot"></i>
                     </a>
                 </div>
             </div>
@@ -853,7 +859,11 @@ function updateHubEarthDetails() {
 
     const cat = getSignalCategory(item.rsrp);
     const earthUrl = getGoogleEarth3DUrl(item.lat, item.lng);
+    const mapsUrl = getGoogleMapsDirectUrl(item.lat, item.lng);
     launchBtn.href = earthUrl;
+
+    const mapsBtn = document.getElementById('hubBtnLaunchMaps');
+    if (mapsBtn) mapsBtn.href = mapsUrl;
 
     container.innerHTML = `
         <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 p-4 bg-slate-50 rounded-2xl border border-slate-200">
@@ -1358,6 +1368,7 @@ function updateEarthDetails() {
     const select = document.getElementById('earthLocationSelect');
     const container = document.getElementById('earthLocationDetails');
     const launchBtn = document.getElementById('btnLaunchEarth3D');
+    const mapsModalBtn = document.getElementById('btnLaunchMapsModal');
     const selectedId = parseInt(select.value);
 
     const item = activeDataset.find(d => d.id === selectedId) || activeDataset[0];
@@ -1365,7 +1376,9 @@ function updateEarthDetails() {
 
     const cat = getSignalCategory(item.rsrp);
     const earthUrl = getGoogleEarth3DUrl(item.lat, item.lng);
+    const mapsUrl = getGoogleMapsDirectUrl(item.lat, item.lng);
     launchBtn.href = earthUrl;
+    if (mapsModalBtn) mapsModalBtn.href = mapsUrl;
 
     container.innerHTML = `
         <div class="flex items-start justify-between gap-3">
@@ -1794,7 +1807,12 @@ function renderRecommendations() {
                         <p class="text-[10px] text-slate-600 mt-0.5">${d.operator} · RSRP <strong class="text-rose-600">${d.rsrp} dBm</strong> · Download ${d.download} Mbps · Latency ${d.latency}ms</p>
                         <p class="text-[10px] text-rose-700 mt-1 font-medium">⚠ Sinyal kritis — tidak layak QRIS/streaming. Perlu repeater atau BTS baru.</p>
                     </div>
-                    <button onclick="copyCoordinates(${d.lat}, ${d.lng})" class="text-[10px] px-2 py-1 bg-white border border-rose-200 rounded-lg text-rose-700 font-bold hover:bg-rose-50 transition whitespace-nowrap">Salin GPS</button>
+                    <div class="flex items-center gap-2">
+                        <a href="${getGoogleMapsDirectUrl(d.lat, d.lng)}" target="_blank" class="text-[10px] px-2 py-1 bg-emerald-50 border border-emerald-300 rounded-lg text-emerald-700 font-bold hover:bg-emerald-100 transition whitespace-nowrap flex items-center gap-1">
+                            <i class="fa-solid fa-location-dot"></i> Maps
+                        </a>
+                        <button onclick="copyCoordinates(${d.lat}, ${d.lng})" class="text-[10px] px-2 py-1 bg-white border border-rose-200 rounded-lg text-rose-700 font-bold hover:bg-rose-50 transition whitespace-nowrap">Salin GPS</button>
+                    </div>
                 </div>
             `).join('') + '</div>';
         }
@@ -2048,4 +2066,16 @@ function updateFilterPanelTags() {
         tagsHtml += `<span class="inline-flex items-center gap-1 px-2.5 py-1 bg-amber-50 text-amber-700 border border-amber-200 rounded-full text-xs font-medium"><i class="fa-solid fa-wifi text-[10px]"></i> ${qText}</span>`;
     }
     tagsContainer.innerHTML = tagsHtml;
+}
+
+
+// Helper: Buka Kawasan Mandeh atau Titik Terpilih di Google Maps
+function openMapsCurrentLocation() {
+    if (typeof leafletMap !== 'undefined' && leafletMap) {
+        const center = leafletMap.getCenter();
+        const url = getGoogleMapsDirectUrl(center.lat, center.lng);
+        window.open(url, '_blank');
+    } else {
+        window.open('https://www.google.com/maps/search/?api=1&query=-1.185000,100.415000', '_blank');
+    }
 }
