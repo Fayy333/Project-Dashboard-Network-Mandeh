@@ -1,0 +1,189 @@
+/* ==========================================================================
+   STYLE.CSS - Dashboard Monitoring Jaringan KKN UGM Mandeh & Sei Nyalo
+   ========================================================================== */
+
+/* 1. Map Container & Leaflet Customization */
+#map {
+    width: 100%;
+    height: 540px;
+    z-index: 10;
+    border-radius: 1rem;
+}
+
+.leaflet-container {
+    font-family: 'Plus Jakarta Sans', sans-serif !important;
+    background: #f8fafc;
+}
+
+/* 2. Custom Leaflet Popup Card */
+.leaflet-popup-content-wrapper {
+    background: #ffffff;
+    border-radius: 1rem;
+    border: 1px solid #e2e8f0;
+    box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+    padding: 0;
+    overflow: hidden;
+}
+
+.leaflet-popup-content {
+    margin: 0 !important;
+    line-height: 1.4;
+}
+
+.leaflet-popup-tip {
+    background: #ffffff;
+}
+
+/* 3. Radar / Beacon Pulse Animation on Map */
+.beacon-marker {
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.beacon-core {
+    width: 18px;
+    height: 18px;
+    border-radius: 50%;
+    border: 2.5px solid #ffffff;
+    box-shadow: 0 0 8px rgba(0, 0, 0, 0.25);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 8px;
+    color: #ffffff;
+    font-weight: bold;
+    z-index: 2;
+}
+
+.beacon-ring {
+    position: absolute;
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    opacity: 0.75;
+    animation: radar-ping 2s cubic-bezier(0, 0, 0.2, 1) infinite;
+    z-index: 1;
+}
+
+@keyframes radar-ping {
+    0% {
+        transform: scale(0.6);
+        opacity: 0.9;
+    }
+    75%, 100% {
+        transform: scale(2.2);
+        opacity: 0;
+    }
+}
+
+/* 4. Tower BTS Marker & Radar Waves (Merah Putih & Multi-Operator) */
+.bts-marker {
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.bts-core-merah-putih {
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #ef4444 50%, #ffffff 50%);
+    border: 2.5px solid #b91c1c;
+    box-shadow: 0 0 14px rgba(239, 68, 68, 0.6), 0 4px 6px -1px rgba(0, 0, 0, 0.2);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #1e293b;
+    font-size: 13px;
+    z-index: 5;
+    cursor: pointer;
+    transition: transform 0.2s ease;
+}
+
+.bts-core-merah-putih:hover {
+    transform: scale(1.15);
+}
+
+.bts-wave {
+    position: absolute;
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    border: 2px dashed rgba(239, 68, 68, 0.75);
+    animation: bts-pulse-wave 2.4s infinite cubic-bezier(0.1, 0, 0.3, 1);
+    z-index: 3;
+    pointer-events: none;
+}
+
+@keyframes bts-pulse-wave {
+    0% {
+        transform: scale(0.6);
+        opacity: 0.95;
+    }
+    100% {
+        transform: scale(2.4);
+        opacity: 0;
+    }
+}
+
+/* 5. Tab Navigation & Interactive Transitions */
+.no-scrollbar::-webkit-scrollbar {
+    display: none;
+}
+.no-scrollbar {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+}
+
+.tab-pane {
+    animation: fadeInTab 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@keyframes fadeInTab {
+    from {
+        opacity: 0;
+        transform: translateY(6px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.tab-btn {
+    transition: all 0.2s ease-in-out;
+}
+
+.tab-btn.active-tab {
+    background-color: #0d9488 !important; /* teal-600 */
+    color: #ffffff !important;
+    border-color: #0f766e !important;
+    box-shadow: 0 4px 6px -1px rgba(13, 148, 136, 0.25), 0 2px 4px -2px rgba(13, 148, 136, 0.2);
+}
+
+/* 6. Print Media Stylesheet */
+@media print {
+    header,
+    nav,
+    .no-print,
+    button,
+    #addModal,
+    #editModal,
+    #earthModal {
+        display: none !important;
+    }
+    body {
+        background: white !important;
+        color: black !important;
+    }
+    #map {
+        height: 400px !important;
+    }
+    .tab-pane {
+        display: block !important;
+        animation: none !important;
+    }
+}

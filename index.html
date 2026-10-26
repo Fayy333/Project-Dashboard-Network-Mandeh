@@ -1,0 +1,1175 @@
+<!DOCTYPE html>
+<html lang="id" class="scroll-smooth">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Monitoring Jaringan Internet - KKN-PPM UGM Mandeh & Sei Nyalo</title>
+
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Google Fonts: Plus Jakarta Sans & JetBrains Mono -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+    
+    <!-- FontAwesome 6 -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    
+    <!-- Leaflet CSS & JS -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="" />
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+    
+    <!-- Chart.js 4 -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+
+    <!-- External Custom CSS -->
+    <link rel="stylesheet" href="style.css">
+
+    <!-- Tailwind Config -->
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['"Plus Jakarta Sans"', 'sans-serif'],
+                        mono: ['"JetBrains Mono"', 'monospace'],
+                    },
+                    colors: {
+                        mandeh: {
+                            50: '#f0fdfa', 100: '#ccfbf1', 200: '#99f6e4',
+                            500: '#14b8a6', 600: '#0d9488', 700: '#0f766e',
+                            800: '#115e59', 900: '#134e4a',
+                        },
+                        ocean: {
+                            50: '#f0f9ff', 100: '#e0f2fe', 200: '#bae6fd',
+                            500: '#0284c7', 600: '#0369a1', 700: '#075985',
+                            800: '#0c4a6e', 900: '#082f49',
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+</head>
+<body class="bg-slate-50 text-slate-800 font-sans min-h-screen flex flex-col selection:bg-teal-500 selection:text-white">
+
+    <!-- Top Accent Bar -->
+    <div class="h-1.5 w-full bg-gradient-to-r from-teal-500 via-cyan-500 to-ocean-600 shadow-sm"></div>
+
+    <!-- Header Navigation -->
+    <header class="bg-white/95 backdrop-blur-md border-b border-slate-200/80 sticky top-0 z-40 shadow-sm">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3.5 flex flex-col lg:flex-row justify-between items-center gap-4">
+            
+            <!-- Branding -->
+            <div class="flex items-center gap-3.5 w-full lg:w-auto">
+                <div class="w-11 h-11 rounded-2xl bg-gradient-to-tr from-teal-600 to-cyan-600 flex items-center justify-center text-white shadow-md shadow-teal-500/20 shrink-0">
+                    <i class="fa-solid fa-tower-broadcast text-xl animate-pulse"></i>
+                </div>
+                <div>
+                    <div class="flex items-center gap-2">
+                        <h1 class="text-lg sm:text-xl font-extrabold tracking-tight text-slate-900">
+                            Monitoring Jaringan Mandeh & Sei Nyalo
+                        </h1>
+                        <span class="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold bg-teal-50 text-teal-700 border border-teal-200">
+                            KKN-PPM UGM
+                        </span>
+                    </div>
+                    <p class="text-xs text-slate-500 flex items-center gap-1.5 mt-0.5 font-medium">
+                        <span>Pesisir Selatan, Sumatera Barat</span>
+                        <span>•</span>
+                        <span class="text-teal-700 font-semibold">Sub-unit Nagari Sei Nyalo & Mandeh</span>
+                    </p>
+                </div>
+            </div>
+
+            <!-- Quick Actions -->
+            <div class="flex flex-wrap items-center justify-end gap-2 w-full lg:w-auto no-print">
+                <button onclick="openEarthModal()" class="px-3.5 py-2 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white text-xs font-semibold rounded-xl shadow-md shadow-blue-500/20 transition flex items-center gap-2 transform active:scale-95" title="Inspeksi Topografi & Kondisi Medan di Google Earth 3D">
+                    <i class="fa-solid fa-earth-americas text-cyan-200"></i> Google Earth 3D
+                </button>
+                <button onclick="openAddModal()" class="px-3.5 py-2 bg-teal-600 hover:bg-teal-700 text-white text-xs font-semibold rounded-xl shadow-md shadow-teal-600/20 transition flex items-center gap-2 transform active:scale-95">
+                    <i class="fa-solid fa-plus-circle"></i> Input GPS
+                </button>
+                <button onclick="triggerCSVUpload()" class="px-3 py-2 bg-white hover:bg-slate-100 text-slate-700 border border-slate-300 text-xs font-medium rounded-xl transition flex items-center gap-2">
+                    <i class="fa-solid fa-file-arrow-up text-teal-600"></i> Import CSV
+                </button>
+                <input type="file" id="csvFileInput" accept=".csv" class="hidden" onchange="handleCSVImport(event)">
+                
+                <!-- Export Menu -->
+                <div class="relative inline-block text-left group">
+                    <button class="px-3 py-2 bg-white hover:bg-slate-100 text-slate-700 border border-slate-300 text-xs font-medium rounded-xl transition flex items-center gap-1.5">
+                        <i class="fa-solid fa-download text-teal-600"></i> Ekspor <i class="fa-solid fa-chevron-down text-[10px] text-slate-400"></i>
+                    </button>
+                    <div class="absolute right-0 mt-1 w-52 bg-white border border-slate-200 rounded-xl shadow-xl py-1.5 hidden group-hover:block z-50">
+                        <button onclick="exportKMLGoogleEarth()" class="w-full text-left px-3.5 py-2 text-xs text-slate-700 hover:bg-blue-50 hover:text-blue-700 flex items-center gap-2">
+                            <i class="fa-solid fa-earth-asia text-blue-600"></i> Ekspor File KML (Google Earth)
+                        </button>
+                        <button onclick="exportRawCSV()" class="w-full text-left px-3.5 py-2 text-xs text-slate-700 hover:bg-slate-100 flex items-center gap-2">
+                            <i class="fa-solid fa-file-csv text-teal-600"></i> Raw CSV Lengkap
+                        </button>
+                        <button onclick="exportSummaryCSV()" class="w-full text-left px-3.5 py-2 text-xs text-slate-700 hover:bg-slate-100 flex items-center gap-2">
+                            <i class="fa-solid fa-table text-cyan-600"></i> Ringkasan Wilayah CSV
+                        </button>
+                        <button onclick="window.print()" class="w-full text-left px-3.5 py-2 text-xs text-slate-700 hover:bg-slate-100 flex items-center gap-2 border-t border-slate-100">
+                            <i class="fa-solid fa-file-pdf text-rose-600"></i> Ekspor / Simpan PDF
+                        </button>
+                    </div>
+                </div>
+
+                <button onclick="resetToDemoData()" class="px-3 py-2 bg-rose-50 hover:bg-rose-100 text-rose-600 border border-rose-200 text-xs font-medium rounded-xl transition" title="Pulihkan data bawaan Mandeh">
+                    <i class="fa-solid fa-rotate-left"></i>
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <!-- ================================================================ -->
+    <!-- FILTER PANEL (Hamburger Slide-In dari kanan)                    -->
+    <!-- ================================================================ -->
+    <!-- Overlay -->
+    <div id="filterOverlay" onclick="closeFilterPanel()" class="fixed inset-0 bg-slate-900/40 backdrop-blur-sm z-[1500] hidden transition-opacity"></div>
+    <!-- Panel -->
+    <div id="filterPanel" class="fixed top-0 right-0 h-full w-80 max-w-[92vw] bg-white shadow-2xl z-[1600] transform translate-x-full transition-transform duration-300 ease-in-out flex flex-col">
+        <!-- Header Panel -->
+        <div class="flex items-center justify-between px-5 py-4 border-b border-slate-200 bg-gradient-to-r from-teal-600 to-teal-700">
+            <div class="flex items-center gap-2 text-white">
+                <i class="fa-solid fa-sliders text-teal-200"></i>
+                <span class="font-bold text-sm">Filter Parameter</span>
+            </div>
+            <button onclick="closeFilterPanel()" class="w-8 h-8 flex items-center justify-center rounded-xl bg-white/20 hover:bg-white/30 text-white transition">
+                <i class="fa-solid fa-xmark text-sm"></i>
+            </button>
+        </div>
+        <!-- Filter Content -->
+        <div class="flex-grow overflow-y-auto p-5 space-y-5">
+            <!-- Active Filter Badge -->
+            <div id="activeFilterBadge" class="hidden items-center gap-2 px-3 py-2 bg-teal-50 text-teal-800 rounded-xl border border-teal-200 text-xs font-mono font-medium">
+                <i class="fa-solid fa-circle-check text-teal-600"></i>
+                <span id="activeFilterText">Filtered</span>
+            </div>
+
+            <!-- Filter: Wilayah -->
+            <div>
+                <label for="locationFilter" class="block text-xs font-bold text-slate-700 mb-2 flex items-center gap-1.5">
+                    <i class="fa-solid fa-map-pin text-teal-600"></i> Wilayah / Titik Pengamatan
+                </label>
+                <select id="locationFilter" onchange="applyFilters()" class="w-full bg-slate-50 border border-slate-300 text-slate-800 text-xs rounded-xl p-2.5 focus:ring-2 focus:ring-teal-500 focus:border-teal-500 font-medium">
+                    <option value="ALL">Semua Wilayah &amp; Gugusan Pulau</option>
+                </select>
+            </div>
+
+            <!-- Filter: Operator -->
+            <div>
+                <label for="operatorFilter" class="block text-xs font-bold text-slate-700 mb-2 flex items-center gap-1.5">
+                    <i class="fa-solid fa-signal text-indigo-500"></i> Provider Seluler
+                </label>
+                <select id="operatorFilter" onchange="applyFilters()" class="w-full bg-slate-50 border border-slate-300 text-slate-800 text-xs rounded-xl p-2.5 focus:ring-2 focus:ring-teal-500 focus:border-teal-500 font-medium">
+                    <option value="ALL">Semua Operator Seluler</option>
+                </select>
+            </div>
+
+            <!-- Filter: Kualitas Sinyal -->
+            <div>
+                <label for="signalQualityFilter" class="block text-xs font-bold text-slate-700 mb-2 flex items-center gap-1.5">
+                    <i class="fa-solid fa-wifi text-emerald-500"></i> Kategori Kualitas Sinyal
+                </label>
+                <select id="signalQualityFilter" onchange="applyFilters()" class="w-full bg-slate-50 border border-slate-300 text-slate-800 text-xs rounded-xl p-2.5 focus:ring-2 focus:ring-teal-500 focus:border-teal-500 font-medium">
+                    <option value="ALL">Semua Kategori Kualitas</option>
+                    <option value="GOOD">Sangat Baik (≥ -90 dBm)</option>
+                    <option value="MEDIUM">Sedang (-91 s/d -100 dBm)</option>
+                    <option value="WEAK">Lemah / Kritis (&lt; -100 dBm)</option>
+                </select>
+            </div>
+
+            <!-- Divider -->
+            <div class="border-t border-slate-100 pt-2 space-y-2">
+                <p class="text-[10px] text-slate-400 uppercase tracking-wider font-bold">Filter Aktif</p>
+                <div id="filterTagsPanel" class="flex flex-wrap gap-1.5 text-[11px]">
+                    <span class="px-2.5 py-1 bg-slate-100 text-slate-500 rounded-full">Belum ada filter aktif</span>
+                </div>
+            </div>
+        </div>
+        <!-- Footer Panel -->
+        <div class="px-5 py-4 border-t border-slate-100 bg-slate-50 space-y-2">
+            <button onclick="resetFilters()" class="w-full py-2.5 bg-white hover:bg-slate-100 text-slate-700 text-xs font-semibold rounded-xl transition flex items-center justify-center gap-2 border border-slate-300">
+                <i class="fa-solid fa-filter-circle-xmark text-slate-500"></i> Reset Semua Filter
+            </button>
+            <button onclick="closeFilterPanel()" class="w-full py-2.5 bg-teal-600 hover:bg-teal-700 text-white text-xs font-bold rounded-xl transition flex items-center justify-center gap-2">
+                <i class="fa-solid fa-check"></i> Terapkan &amp; Tutup
+            </button>
+        </div>
+    </div>
+
+    <!-- Sticky Tab Navigation Menu Bar -->
+    <nav class="bg-white/95 backdrop-blur-md border-b border-slate-200 sticky top-0 sm:top-[69px] z-30 shadow-xs">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex items-center gap-1.5 sm:gap-2 py-2.5 overflow-x-auto no-scrollbar text-xs font-semibold">
+                <button onclick="switchTab('map')" id="nav-map" class="tab-btn active-tab px-3.5 sm:px-4 py-2 rounded-xl border border-teal-600 bg-teal-600 text-white shadow-sm flex items-center gap-2 whitespace-nowrap">
+                    <i class="fa-solid fa-map-location-dot"></i>
+                    <span>Peta & Menara BTS</span>
+                    <span class="px-1.5 py-0.5 rounded-full text-[10px] bg-red-100 text-red-700 font-bold border border-red-200">4 BTS</span>
+                </button>
+                <button onclick="switchTab('overview')" id="nav-overview" class="tab-btn px-3.5 sm:px-4 py-2 rounded-xl border border-slate-200 bg-white text-slate-600 hover:text-slate-900 flex items-center gap-2 whitespace-nowrap">
+                    <i class="fa-solid fa-chart-pie"></i>
+                    <span>Ringkasan & KPI</span>
+                </button>
+                <button onclick="switchTab('analytics')" id="nav-analytics" class="tab-btn px-3.5 sm:px-4 py-2 rounded-xl border border-slate-200 bg-white text-slate-600 hover:text-slate-900 flex items-center gap-2 whitespace-nowrap">
+                    <i class="fa-solid fa-chart-line"></i>
+                    <span>Grafik & Throughput</span>
+                </button>
+                <button onclick="switchTab('crud')" id="nav-crud" class="tab-btn px-3.5 sm:px-4 py-2 rounded-xl border border-slate-200 bg-white text-slate-600 hover:text-slate-900 flex items-center gap-2 whitespace-nowrap">
+                    <i class="fa-solid fa-database"></i>
+                    <span>Kelola Data Log (CRUD)</span>
+                    <span id="navLogCountBadge" class="px-1.5 py-0.5 rounded-full text-[10px] bg-teal-100 text-teal-800 font-bold">14</span>
+                </button>
+                <button onclick="switchTab('report')" id="nav-report" class="tab-btn px-3.5 sm:px-4 py-2 rounded-xl border border-slate-200 bg-white text-slate-600 hover:text-slate-900 flex items-center gap-2 whitespace-nowrap">
+                    <i class="fa-solid fa-table-cells"></i>
+                    <span>Laporan Teknis Wilayah</span>
+                </button>
+                <button onclick="switchTab('earth')" id="nav-earth" class="tab-btn px-3.5 sm:px-4 py-2 rounded-xl border border-slate-200 bg-white text-slate-600 hover:text-slate-900 flex items-center gap-2 whitespace-nowrap">
+                    <i class="fa-solid fa-earth-americas text-blue-500"></i>
+                    <span>Hub Google Earth 3D</span>
+                </button>
+                <button onclick="switchTab('recommender')" id="nav-recommender" class="tab-btn px-3.5 sm:px-4 py-2 rounded-xl border border-slate-200 bg-white text-slate-600 hover:text-slate-900 flex items-center gap-2 whitespace-nowrap">
+                    <i class="fa-solid fa-lightbulb text-amber-500"></i>
+                    <span>Rekomendasi Spot</span>
+                </button>
+                <button onclick="switchTab('qrcode')" id="nav-qrcode" class="tab-btn px-3.5 sm:px-4 py-2 rounded-xl border border-slate-200 bg-white text-slate-600 hover:text-slate-900 flex items-center gap-2 whitespace-nowrap">
+                    <i class="fa-solid fa-qrcode text-slate-600"></i>
+                    <span>QR Crowdsourcing</span>
+                </button>
+                <button onclick="switchTab('report-letter')" id="nav-report-letter" class="tab-btn px-3.5 sm:px-4 py-2 rounded-xl border border-slate-200 bg-white text-slate-600 hover:text-slate-900 flex items-center gap-2 whitespace-nowrap">
+                    <i class="fa-solid fa-file-signature text-rose-500"></i>
+                    <span>Surat Rekomendasi</span>
+                </button>
+
+                <!-- SEPARATOR -->
+                <div class="h-6 w-px bg-slate-200 mx-1 shrink-0"></div>
+
+                <!-- HAMBURGER FILTER BUTTON (3 Garis) -->
+                <button onclick="toggleFilterPanel()" id="btnHamburgerFilter" title="Buka Menu Filter Parameter" class="relative shrink-0 px-3 py-2 flex items-center gap-1.5 rounded-xl border border-slate-200 bg-white text-slate-700 hover:bg-teal-50 hover:text-teal-700 hover:border-teal-300 transition shadow-xs">
+                    <i class="fa-solid fa-bars text-sm"></i>
+                    <span class="text-xs font-semibold hidden sm:inline">Filter</span>
+                    <span id="filterActiveDot" class="hidden absolute top-1 right-1 w-2.5 h-2.5 rounded-full bg-teal-500 border-2 border-white"></span>
+                </button>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Container -->
+    <main class="flex-grow max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-6">
+
+
+        <!-- =================================================================== -->
+        <!-- TAB 1: PETA INTERAKTIF GEOSPASIAL & MENARA BTS                      -->
+        <!-- =================================================================== -->
+        <div id="tab-map" class="tab-pane space-y-6">
+            <!-- Map Container Card -->
+            <div class="bg-white rounded-3xl border border-slate-200 shadow-sm overflow-hidden">
+                <div class="px-5 py-4 border-b border-slate-100 flex flex-col md:flex-row justify-between items-start md:items-center gap-3">
+                    <div class="space-y-1">
+                        <div class="flex items-center gap-2">
+                            <span class="w-3 h-3 rounded-full bg-emerald-500 animate-ping"></span>
+                            <h2 class="text-base sm:text-lg font-bold text-slate-900 flex items-center gap-2">
+                                <i class="fa-solid fa-map-location-dot text-teal-600"></i>
+                                Peta Interaktif Geospasial Sinyal Mandeh & Nagari Sei Nyalo
+                            </h2>
+                        </div>
+                        <p class="text-xs text-slate-500">
+                            Peta persebaran sinyal, visualisasi <strong class="text-red-600">Tower Merah Putih & BTS</strong> dengan radius jangkauan, dan direct link <strong class="text-blue-600">Google Earth 3D</strong>.
+                        </p>
+                    </div>
+
+                    <div class="flex flex-wrap items-center gap-2 no-print">
+                        <div class="bg-slate-100 p-1 rounded-xl border border-slate-200 flex items-center gap-1 text-[11px] font-semibold">
+                            <button onclick="switchBaseMap('googleHybrid')" id="btnLayerGoogleHybrid" class="px-2.5 py-1 rounded-lg bg-teal-600 text-white shadow-sm transition"><i class="fa-solid fa-satellite"></i> Satelit</button>
+                            <button onclick="switchBaseMap('googleRoadmap')" id="btnLayerGoogleRoadmap" class="px-2.5 py-1 rounded-lg text-slate-600 hover:text-slate-900 transition"><i class="fa-solid fa-road"></i> Jalan</button>
+                            <button onclick="switchBaseMap('googleTerrain')" id="btnLayerGoogleTerrain" class="px-2.5 py-1 rounded-lg text-slate-600 hover:text-slate-900 transition"><i class="fa-solid fa-mountain"></i> Relief</button>
+                        </div>
+
+                        <button onclick="toggleBtsTowers()" id="btnToggleBTS" class="px-3 py-1.5 rounded-xl bg-red-50 text-red-700 border border-red-300 text-xs font-semibold transition flex items-center gap-1.5 shadow-sm" title="Tampilkan/Sembunyikan Tower BTS & Radius Jangkauan">
+                            <i class="fa-solid fa-tower-broadcast text-red-600"></i> <span>Tower BTS & Radius</span>
+                        </button>
+                        <button onclick="toggleCoverageRadius()" id="btnToggleRadius" class="px-3 py-1.5 rounded-xl bg-teal-50 text-teal-700 border border-teal-200 text-xs font-semibold transition flex items-center gap-1.5">
+                            <i class="fa-solid fa-bullseye text-teal-600"></i> <span>Radius Sinyal</span>
+                        </button>
+                        <button onclick="centerMapToAll()" class="px-3 py-1.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 border border-slate-200 text-xs font-medium transition" title="Pusatkan Peta">
+                            <i class="fa-solid fa-expand"></i>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Focus Chips -->
+                <div class="px-5 py-2.5 bg-slate-50 border-b border-slate-200 flex items-center gap-2 overflow-x-auto text-xs no-print">
+                    <span class="text-slate-500 font-semibold shrink-0 text-[11px]"><i class="fa-solid fa-crosshairs text-teal-600 mr-1"></i>Fokus Menara & Wilayah:</span>
+                    <button onclick="focusToBts('bts-merah-putih')" class="px-2.5 py-1 bg-red-50 hover:bg-red-100 text-red-700 rounded-lg shrink-0 border border-red-200 font-semibold transition">
+                        🗼 Tower Merah Putih (4.2 km)
+                    </button>
+                    <button onclick="focusToBts('bts-sei-nyalo')" class="px-2.5 py-1 bg-teal-50 hover:bg-teal-100 text-teal-700 rounded-lg shrink-0 border border-teal-200 font-semibold transition">
+                        🗼 Tower Sei Nyalo (2.0 km)
+                    </button>
+                    <button onclick="focusToBts('bts-cubadak')" class="px-2.5 py-1 bg-blue-50 hover:bg-blue-100 text-blue-700 rounded-lg shrink-0 border border-blue-200 font-semibold transition">
+                        🗼 Tower Cubadak (1.6 km)
+                    </button>
+                    <button onclick="flyToLocation(-1.1834, 100.4170, 13)" class="px-2.5 py-1 bg-white hover:bg-slate-100 text-slate-700 rounded-lg shrink-0 border border-slate-300 transition">🌐 Seluruh Mandeh</button>
+                    <button onclick="flyToLocation(-1.1895, 100.4285, 15)" class="px-2.5 py-1 bg-white hover:bg-slate-100 text-slate-700 rounded-lg shrink-0 border border-slate-300 transition">🏛️ Nagari Sei Nyalo</button>
+                    <button onclick="flyToLocation(-1.1712, 100.4195, 15)" class="px-2.5 py-1 bg-white hover:bg-slate-100 text-slate-700 rounded-lg shrink-0 border border-slate-300 transition">⛵ Nagari Mandeh</button>
+                    <button onclick="flyToLocation(-1.1834, 100.4121, 16)" class="px-2.5 py-1 bg-white hover:bg-slate-100 text-slate-700 rounded-lg shrink-0 border border-slate-300 transition">⛰️ Puncak Mandeh</button>
+                    <button onclick="flyToLocation(-1.2184, 100.3842, 14)" class="px-2.5 py-1 bg-white hover:bg-slate-100 text-slate-700 rounded-lg shrink-0 border border-slate-300 transition">🏝️ Pulau Cubadak</button>
+                </div>
+
+                <!-- Map Viewport -->
+                <div class="relative">
+                    <div id="map"></div>
+
+                    <!-- Floating Legend -->
+                    <div class="absolute bottom-4 left-4 z-[1000] bg-white/95 backdrop-blur-md p-3.5 rounded-2xl border border-slate-200 shadow-xl text-xs space-y-2 max-w-[220px]">
+                        <div class="font-bold text-slate-800 text-[11px] flex items-center justify-between border-b border-slate-100 pb-1.5">
+                            <span class="flex items-center gap-1.5"><i class="fa-solid fa-signal text-teal-600"></i> Indikator Sinyal RSRP</span>
+                        </div>
+                        <div class="space-y-1.5 text-[11px]">
+                            <div class="flex items-center justify-between">
+                                <span class="flex items-center gap-2"><span class="w-3 h-3 rounded-full bg-emerald-500 border border-white shadow-sm"></span><span class="text-slate-700 font-medium">Sangat Baik</span></span>
+                                <span class="text-slate-500 font-mono text-[10px]">≥ -90 dBm</span>
+                            </div>
+                            <div class="flex items-center justify-between">
+                                <span class="flex items-center gap-2"><span class="w-3 h-3 rounded-full bg-amber-500 border border-white shadow-sm"></span><span class="text-slate-700 font-medium">Sedang</span></span>
+                                <span class="text-slate-500 font-mono text-[10px]">-91 s/d -100</span>
+                            </div>
+                            <div class="flex items-center justify-between">
+                                <span class="flex items-center gap-2"><span class="w-3 h-3 rounded-full bg-rose-500 border border-white shadow-sm animate-pulse"></span><span class="text-slate-700 font-medium">Lemah / Kritis</span></span>
+                                <span class="text-rose-600 font-mono text-[10px]">&lt; -100 dBm</span>
+                            </div>
+                        </div>
+                        <div class="pt-1.5 border-t border-slate-100 text-[10px] text-slate-500 flex items-center justify-between">
+                            <span>Pesisir Selatan</span><span class="text-teal-700 font-bold">4G LTE</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Menara / Tower BTS Summary Section -->
+            <div class="bg-white rounded-3xl border border-slate-200 shadow-sm p-5 space-y-4">
+                <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2">
+                    <div>
+                        <h3 class="text-sm sm:text-base font-bold text-slate-900 flex items-center gap-2">
+                            <i class="fa-solid fa-tower-broadcast text-red-600"></i> Menara / Tower BTS & Radius Jangkauan Seluler
+                        </h3>
+                        <p class="text-xs text-slate-500 mt-0.5">
+                            Pemetaan menara pemancar seluler (termasuk <strong>Tower Merah Putih Bukit Mandeh</strong>) dan estimasi radius jangkauan di kawasan teluk & kepulauan.
+                        </p>
+                    </div>
+                    <div class="flex items-center gap-2">
+                        <button onclick="focusToBts('bts-merah-putih')" class="px-3 py-1.5 bg-red-50 hover:bg-red-100 text-red-700 font-semibold text-xs rounded-xl border border-red-200 transition flex items-center gap-1.5 shadow-sm">
+                            <i class="fa-solid fa-crosshairs"></i> Fokus Tower Merah Putih
+                        </button>
+                        <button onclick="toggleBtsTowers()" class="px-3 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold text-xs rounded-xl border border-slate-300 transition flex items-center gap-1.5">
+                            <i class="fa-solid fa-layer-group text-slate-600"></i> Toggle Radius Peta
+                        </button>
+                    </div>
+                </div>
+
+                <!-- List Grid BTS Towers -->
+                <div id="btsTowersSummaryList" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4"></div>
+            </div>
+        </div>
+
+        <!-- =================================================================== -->
+        <!-- TAB 2: RINGKASAN EKSEKUTIF & KPI DASHBOARD                          -->
+        <!-- =================================================================== -->
+        <div id="tab-overview" class="tab-pane hidden space-y-6">
+            <!-- Executive Summary Banner -->
+            <div class="relative overflow-hidden rounded-3xl bg-gradient-to-r from-teal-50 via-cyan-50 to-blue-50 border border-teal-200/80 p-5 sm:p-6 shadow-sm">
+                <div class="relative z-10 flex flex-col lg:flex-row lg:items-center justify-between gap-6">
+                    <div class="space-y-2">
+                        <div class="flex flex-wrap items-center gap-2.5">
+                            <span class="px-3 py-1 rounded-full text-xs font-bold bg-teal-600 text-white shadow-sm flex items-center gap-1.5">
+                                <i class="fa-solid fa-satellite-dish text-[11px]"></i> Telemetri Sinyal Radio KKN 2026
+                            </span>
+                            <span class="text-xs text-slate-600 flex items-center gap-1 font-mono font-medium">
+                                <i class="fa-regular fa-clock text-slate-400"></i> <span id="liveTimestamp">23 Okt 2026</span>
+                            </span>
+                            <span class="text-xs font-semibold px-2.5 py-0.5 rounded-full bg-blue-100 text-blue-800 border border-blue-200 flex items-center gap-1">
+                                <i class="fa-solid fa-earth-americas text-blue-600"></i> Terintegrasi Google Earth 3D
+                            </span>
+                        </div>
+                        <h2 class="text-xl sm:text-2xl font-extrabold text-slate-900 tracking-tight">
+                            Pemetaan Kualitas Sinyal & Analisis Topografi Kawasan Mandeh & Sei Nyalo
+                        </h2>
+                        <p class="text-xs sm:text-sm text-slate-600 max-w-3xl leading-relaxed">
+                            Pengukuran parameter fisik radio seluler (<span class="font-mono font-semibold text-teal-800">RSRP</span>, <span class="font-mono font-semibold text-cyan-800">RSRQ</span>, <span class="font-mono font-semibold text-indigo-800">SINR</span>) dan throughput internet. Hubungkan titik pengukuran ke Google Earth untuk mengecek halangan kontur bukit (*terrain obstruction*), pepohonan, serta elevasi pantai.
+                        </p>
+                    </div>
+
+                    <!-- Algorithmic Insights Card -->
+                    <div class="shrink-0 bg-white border border-slate-200 rounded-2xl p-4 min-w-[280px] lg:max-w-sm space-y-2.5 shadow-sm">
+                        <div class="text-[11px] font-bold text-slate-500 uppercase tracking-wider flex items-center justify-between">
+                            <span>Status Rekomendasi Teknis</span>
+                            <i class="fa-solid fa-microchip text-teal-600"></i>
+                        </div>
+                        <div class="space-y-1.5 text-xs">
+                            <div class="flex items-start gap-2 text-rose-800 bg-rose-50 p-2.5 rounded-xl border border-rose-200">
+                                <i class="fa-solid fa-triangle-exclamation text-rose-500 mt-0.5"></i>
+                                <div>
+                                    <span class="font-bold">Prioritas Blank Spot / Sinyal Lemah:</span>
+                                    <div class="text-[11px] text-slate-600 mt-0.5">Pulau Cubadak & Homestay Nyalo (&lt; -100 dBm). Terhalang punggung bukit pulau.</div>
+                                </div>
+                            </div>
+                            <div class="flex items-start gap-2 text-teal-800 bg-teal-50 p-2.5 rounded-xl border border-teal-200">
+                                <i class="fa-solid fa-bolt text-teal-600 mt-0.5"></i>
+                                <div>
+                                    <span class="font-bold">Titik Performa Terbaik:</span>
+                                    <div class="text-[11px] text-slate-600 mt-0.5">Spot Tower Mandeh & Puncak Mandeh (hingga 42.0 Mbps DL, latency 24 ms).</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 6 KPI Cards -->
+            <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3.5">
+                <div class="bg-white rounded-2xl p-4 border border-slate-200/90 shadow-sm hover:shadow-md transition">
+                    <div class="flex items-center justify-between">
+                        <p class="text-[11px] font-semibold text-slate-500 uppercase tracking-wider">Total Sampel</p>
+                        <div class="w-7 h-7 rounded-lg bg-teal-50 flex items-center justify-center text-teal-600 text-xs"><i class="fa-solid fa-location-dot"></i></div>
+                    </div>
+                    <h3 class="text-2xl sm:text-3xl font-extrabold text-slate-900 mt-2 font-mono" id="kpiTotal">0</h3>
+                    <span class="text-[10px] text-teal-700 font-semibold flex items-center gap-1 mt-1"><i class="fa-solid fa-database text-[9px]"></i> Titik Terpetakan</span>
+                </div>
+                <div class="bg-white rounded-2xl p-4 border border-slate-200/90 shadow-sm hover:shadow-md transition">
+                    <div class="flex items-center justify-between">
+                        <p class="text-[11px] font-semibold text-slate-500 uppercase tracking-wider">Avg Download</p>
+                        <div class="w-7 h-7 rounded-lg bg-emerald-50 flex items-center justify-center text-emerald-600 text-xs"><i class="fa-solid fa-download"></i></div>
+                    </div>
+                    <h3 class="text-2xl sm:text-3xl font-extrabold text-emerald-600 mt-2 font-mono" id="kpiAvgDownload">0 <span class="text-xs font-normal text-slate-400">Mbps</span></h3>
+                    <span class="text-[10px] text-slate-500 font-medium mt-1 block">Kecepatan Unduh</span>
+                </div>
+                <div class="bg-white rounded-2xl p-4 border border-slate-200/90 shadow-sm hover:shadow-md transition">
+                    <div class="flex items-center justify-between">
+                        <p class="text-[11px] font-semibold text-slate-500 uppercase tracking-wider">Avg Upload</p>
+                        <div class="w-7 h-7 rounded-lg bg-cyan-50 flex items-center justify-center text-cyan-600 text-xs"><i class="fa-solid fa-upload"></i></div>
+                    </div>
+                    <h3 class="text-2xl sm:text-3xl font-extrabold text-cyan-600 mt-2 font-mono" id="kpiAvgUpload">0 <span class="text-xs font-normal text-slate-400">Mbps</span></h3>
+                    <span class="text-[10px] text-slate-500 font-medium mt-1 block">Kecepatan Unggah</span>
+                </div>
+                <div class="bg-white rounded-2xl p-4 border border-slate-200/90 shadow-sm hover:shadow-md transition">
+                    <div class="flex items-center justify-between">
+                        <p class="text-[11px] font-semibold text-slate-500 uppercase tracking-wider">Avg Latensi</p>
+                        <div class="w-7 h-7 rounded-lg bg-amber-50 flex items-center justify-center text-amber-600 text-xs"><i class="fa-solid fa-stopwatch"></i></div>
+                    </div>
+                    <h3 class="text-2xl sm:text-3xl font-extrabold text-amber-600 mt-2 font-mono" id="kpiAvgLatency">0 <span class="text-xs font-normal text-slate-400">ms</span></h3>
+                    <span class="text-[10px] text-slate-500 font-medium mt-1 block">Ping Respons</span>
+                </div>
+                <div class="bg-white rounded-2xl p-4 border border-slate-200/90 shadow-sm hover:shadow-md transition">
+                    <div class="flex items-center justify-between">
+                        <p class="text-[11px] font-semibold text-slate-500 uppercase tracking-wider">Avg RSRP</p>
+                        <div class="w-7 h-7 rounded-lg bg-indigo-50 flex items-center justify-center text-indigo-600 text-xs"><i class="fa-solid fa-signal"></i></div>
+                    </div>
+                    <h3 class="text-2xl sm:text-3xl font-extrabold text-indigo-600 mt-2 font-mono" id="kpiAvgRSRP">0 <span class="text-xs font-normal text-slate-400">dBm</span></h3>
+                    <span class="text-[10px] text-slate-500 font-medium mt-1 block">Kekuatan Sinyal Daya</span>
+                </div>
+                <div class="bg-white rounded-2xl p-4 border border-slate-200/90 shadow-sm hover:shadow-md transition">
+                    <div class="flex items-center justify-between">
+                        <p class="text-[11px] font-semibold text-slate-500 uppercase tracking-wider">% Sinyal Lemah</p>
+                        <div class="w-7 h-7 rounded-lg bg-rose-50 flex items-center justify-center text-rose-600 text-xs"><i class="fa-solid fa-triangle-exclamation"></i></div>
+                    </div>
+                    <h3 class="text-2xl sm:text-3xl font-extrabold text-rose-600 mt-2 font-mono" id="kpiWeakPct">0%</h3>
+                    <span class="text-[10px] text-rose-600 font-semibold mt-1 block">&lt; -100 dBm (Kritis)</span>
+                </div>
+            </div>
+
+            <!-- Quick Jump Shortcuts & Features Grid -->
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+                <div onclick="switchTab('map')" class="bg-white p-5 rounded-3xl border border-slate-200 shadow-sm hover:shadow-md hover:border-teal-300 transition cursor-pointer group space-y-2">
+                    <div class="w-10 h-10 rounded-2xl bg-teal-50 text-teal-600 flex items-center justify-center group-hover:scale-110 transition">
+                        <i class="fa-solid fa-map-location-dot text-lg"></i>
+                    </div>
+                    <h4 class="font-extrabold text-slate-900 text-sm group-hover:text-teal-600 transition">Peta Geospasial & BTS</h4>
+                    <p class="text-xs text-slate-500">Visualisasi 4 Tower BTS, radius jangkauan, dan sampel sinyal di atas peta satelit interaktif.</p>
+                    <span class="text-xs font-bold text-teal-600 flex items-center gap-1 pt-1">Buka Peta <i class="fa-solid fa-arrow-right text-[10px]"></i></span>
+                </div>
+
+                <div onclick="switchTab('analytics')" class="bg-white p-5 rounded-3xl border border-slate-200 shadow-sm hover:shadow-md hover:border-teal-300 transition cursor-pointer group space-y-2">
+                    <div class="w-10 h-10 rounded-2xl bg-cyan-50 text-cyan-600 flex items-center justify-center group-hover:scale-110 transition">
+                        <i class="fa-solid fa-chart-line text-lg"></i>
+                    </div>
+                    <h4 class="font-extrabold text-slate-900 text-sm group-hover:text-cyan-600 transition">Grafik & Throughput</h4>
+                    <p class="text-xs text-slate-500">Analisis komparasi kecepatan download vs upload dan korelasi sinyal terhadap latensi.</p>
+                    <span class="text-xs font-bold text-cyan-600 flex items-center gap-1 pt-1">Buka Grafik <i class="fa-solid fa-arrow-right text-[10px]"></i></span>
+                </div>
+
+                <div onclick="switchTab('crud')" class="bg-white p-5 rounded-3xl border border-slate-200 shadow-sm hover:shadow-md hover:border-teal-300 transition cursor-pointer group space-y-2">
+                    <div class="w-10 h-10 rounded-2xl bg-amber-50 text-amber-600 flex items-center justify-center group-hover:scale-110 transition">
+                        <i class="fa-solid fa-pen-to-square text-lg"></i>
+                    </div>
+                    <h4 class="font-extrabold text-slate-900 text-sm group-hover:text-amber-600 transition">Kelola Data Log (CRUD)</h4>
+                    <p class="text-xs text-slate-500">Tambah data baru dengan GPS otomatis, edit koordinat atau metrik sinyal, dan hapus log.</p>
+                    <span class="text-xs font-bold text-amber-600 flex items-center gap-1 pt-1">Kelola Log <i class="fa-solid fa-arrow-right text-[10px]"></i></span>
+                </div>
+
+                <div onclick="switchTab('earth')" class="bg-white p-5 rounded-3xl border border-slate-200 shadow-sm hover:shadow-md hover:border-teal-300 transition cursor-pointer group space-y-2">
+                    <div class="w-10 h-10 rounded-2xl bg-blue-50 text-blue-600 flex items-center justify-center group-hover:scale-110 transition">
+                        <i class="fa-solid fa-earth-americas text-lg"></i>
+                    </div>
+                    <h4 class="font-extrabold text-slate-900 text-sm group-hover:text-blue-600 transition">Hub Google Earth 3D</h4>
+                    <p class="text-xs text-slate-500">Inspeksi topografi pulau karang, bukit terjal, elevasi tanah, dan unduh berkas KML.</p>
+                    <span class="text-xs font-bold text-blue-600 flex items-center gap-1 pt-1">Buka 3D Hub <i class="fa-solid fa-arrow-right text-[10px]"></i></span>
+                </div>
+            </div>
+        </div>
+
+        <!-- =================================================================== -->
+        <!-- TAB 3: GRAFIK & ANALISIS THROUGHPUT                                 -->
+        <!-- =================================================================== -->
+        <div id="tab-analytics" class="tab-pane hidden space-y-6">
+            <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2 bg-white p-5 rounded-3xl border border-slate-200 shadow-sm">
+                <div>
+                    <h3 class="text-base font-extrabold text-slate-900 flex items-center gap-2">
+                        <i class="fa-solid fa-chart-line text-indigo-600"></i> Analisis Telemetri Throughput & Kualitas Sinyal
+                    </h3>
+                    <p class="text-xs text-slate-500 mt-0.5">Visualisasi data telekomunikasi lapangan KKN-PPM UGM di pesisir Mandeh dan Sei Nyalo.</p>
+                </div>
+                <span class="px-3 py-1 rounded-full text-xs font-bold bg-indigo-50 text-indigo-700 border border-indigo-200">
+                    4G LTE Analytics
+                </span>
+            </div>
+
+            <!-- Charts Grid 1: Bar & Doughnut -->
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                <div class="lg:col-span-2 bg-white rounded-3xl p-5 border border-slate-200 shadow-sm flex flex-col justify-between">
+                    <div>
+                        <div class="flex items-center justify-between mb-2">
+                            <h3 class="text-sm font-bold text-slate-900 flex items-center gap-2"><i class="fa-solid fa-chart-column text-teal-600"></i> Kecepatan Throughput Internet per Titik Lokasi</h3>
+                            <span class="text-[11px] font-mono px-2.5 py-0.5 rounded-full bg-teal-50 text-teal-700 border border-teal-200 font-medium">Download vs Upload (Mbps)</span>
+                        </div>
+                        <p class="text-xs text-slate-500 mb-4">Perbandingan throughput unduh dan unggah aktual di setiap titik pengamatan KKN.</p>
+                    </div>
+                    <div class="h-64 sm:h-72 relative"><canvas id="speedBarChart"></canvas></div>
+                </div>
+
+                <div class="bg-white rounded-3xl p-5 border border-slate-200 shadow-sm flex flex-col justify-between">
+                    <div>
+                        <div class="flex items-center justify-between mb-2">
+                            <h3 class="text-sm font-bold text-slate-900 flex items-center gap-2"><i class="fa-solid fa-chart-pie text-cyan-600"></i> Proporsi Kategori Sinyal</h3>
+                            <span class="text-[11px] font-mono px-2.5 py-0.5 rounded-full bg-cyan-50 text-cyan-700 border border-cyan-200 font-medium">RSRP Kategori</span>
+                        </div>
+                        <p class="text-xs text-slate-500 mb-4">Sebaran kualitas sinyal terukur dari seluruh sampel aktif terfilter.</p>
+                    </div>
+                    <div class="h-64 sm:h-72 relative flex items-center justify-center"><canvas id="categoryDoughnutChart"></canvas></div>
+                </div>
+            </div>
+
+            <!-- Charts Grid 2: Line & Benchmark -->
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                <div class="lg:col-span-2 bg-white rounded-3xl p-5 border border-slate-200 shadow-sm">
+                    <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between mb-2 gap-2">
+                        <h3 class="text-sm font-bold text-slate-900 flex items-center gap-2"><i class="fa-solid fa-wave-square text-indigo-600"></i> Korelasi Daya Terima RSRP (dBm) vs Waktu Respon Latensi (ms)</h3>
+                        <span class="text-[11px] font-mono px-2.5 py-0.5 rounded-full bg-indigo-50 text-indigo-700 border border-indigo-200 font-medium">Dual Axis Telemetri</span>
+                    </div>
+                    <p class="text-xs text-slate-500 mb-4">Menganalisis bagaimana degradasi kekuatan sinyal radio di daerah pesisir dan pulau memicu kenaikan latensi ping.</p>
+                    <div class="h-64 sm:h-72 relative"><canvas id="trendLineChart"></canvas></div>
+                </div>
+
+                <div class="bg-white rounded-3xl p-5 border border-slate-200 shadow-sm flex flex-col justify-between">
+                    <div>
+                        <div class="flex items-center justify-between mb-2">
+                            <h3 class="text-sm font-bold text-slate-900 flex items-center gap-2"><i class="fa-solid fa-award text-amber-500"></i> Komparasi Provider Seluler</h3>
+                            <span class="text-[11px] font-mono px-2 py-0.5 rounded-full bg-amber-50 text-amber-700 border border-amber-200 font-medium">Benchmark</span>
+                        </div>
+                        <p class="text-xs text-slate-500 mb-4">Perbandingan performa rata-rata operator seluler di Mandeh & Nyalo.</p>
+                    </div>
+                    <div id="operatorBenchmarkContainer" class="space-y-3"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- =================================================================== -->
+        <!-- TAB 4: MANAJEMEN DATA LOG (CRUD LENGKAP)                            -->
+        <!-- =================================================================== -->
+        <div id="tab-crud" class="tab-pane hidden space-y-6">
+            <div class="bg-white rounded-3xl border border-slate-200 shadow-sm overflow-hidden">
+                <div class="p-5 border-b border-slate-100 flex flex-col md:flex-row justify-between items-start md:items-center gap-3">
+                    <div>
+                        <div class="flex items-center gap-2">
+                            <h3 class="text-base font-extrabold text-slate-900 flex items-center gap-2">
+                                <i class="fa-solid fa-database text-teal-600"></i> Manajemen Data Log Pengukuran Sinyal
+                            </h3>
+                            <span class="px-2.5 py-0.5 rounded-full text-xs font-bold bg-teal-50 text-teal-700 border border-teal-200">CRUD Aktif</span>
+                        </div>
+                        <p class="text-xs text-slate-500 mt-0.5">Tambah data baru via sensor GPS, sunting (Edit) nilai pengukuran, hapus baris data, atau salin koordinat.</p>
+                    </div>
+
+                    <div class="flex flex-wrap items-center gap-2 w-full md:w-auto no-print">
+                        <div class="relative flex-1 sm:w-64">
+                            <i class="fa-solid fa-magnifying-glass absolute left-3 top-2.5 text-slate-400 text-xs"></i>
+                            <input type="text" id="rawSearchInput" oninput="handleRawTableSearch()" placeholder="Cari nama lokasi / provider..." class="w-full pl-8 pr-3 py-1.5 bg-slate-50 border border-slate-300 text-xs rounded-xl text-slate-800 focus:ring-2 focus:ring-teal-500 focus:outline-none">
+                        </div>
+                        <button onclick="openAddModal()" class="px-3.5 py-2 bg-teal-600 hover:bg-teal-700 text-white font-semibold text-xs rounded-xl shadow-md shadow-teal-600/20 transition flex items-center gap-1.5 shrink-0">
+                            <i class="fa-solid fa-plus-circle"></i> Tambah Log Baru
+                        </button>
+                        <button onclick="exportRawCSV()" class="px-3 py-2 bg-white hover:bg-slate-100 text-slate-700 border border-slate-300 text-xs font-medium rounded-xl transition flex items-center gap-1.5">
+                            <i class="fa-solid fa-file-csv text-teal-600"></i> Unduh CSV
+                        </button>
+                    </div>
+                </div>
+
+                <div class="overflow-x-auto max-h-[560px]">
+                    <table class="w-full text-left border-collapse text-xs">
+                        <thead class="sticky top-0 bg-slate-100 border-b border-slate-200 text-slate-600 font-semibold uppercase text-[11px] z-10">
+                            <tr>
+                                <th class="p-3">Waktu</th>
+                                <th class="p-3">Lokasi Pengukuran</th>
+                                <th class="p-3">Provider</th>
+                                <th class="p-3 text-right">RSRP (dBm)</th>
+                                <th class="p-3 text-right">RSRQ (dB)</th>
+                                <th class="p-3 text-right">SINR (dB)</th>
+                                <th class="p-3 text-right">Throughput (DL/UL)</th>
+                                <th class="p-3 text-right">Latency</th>
+                                <th class="p-3 text-center">Kategori</th>
+                                <th class="p-3 text-center no-print">Google Earth 3D</th>
+                                <th class="p-3 text-center no-print">Aksi CRUD</th>
+                            </tr>
+                        </thead>
+                        <tbody id="rawDataTableBody" class="divide-y divide-slate-100 text-slate-700"></tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- =================================================================== -->
+        <!-- TAB 5: LAPORAN AGREGASI WILAYAH (LAPORAN RESMI KKN)                 -->
+        <!-- =================================================================== -->
+        <div id="tab-report" class="tab-pane hidden space-y-6">
+            <div class="bg-white rounded-3xl border border-slate-200 shadow-sm overflow-hidden">
+                <div class="p-5 border-b border-slate-100 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
+                    <div>
+                        <h3 class="text-base font-extrabold text-slate-900 flex items-center gap-2">
+                            <i class="fa-solid fa-table-cells text-teal-600"></i> Ringkasan Analisis Wilayah & Operator (Laporan Teknis)
+                        </h3>
+                        <p class="text-xs text-slate-500 mt-0.5">Agregasi ekuivalen skrip Python data science (`analysis.py`) untuk bahan pelaporan resmi KKN-PPM UGM.</p>
+                    </div>
+                    <div class="flex items-center gap-2 no-print">
+                        <button onclick="exportSummaryCSV()" class="px-3.5 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-semibold rounded-xl transition flex items-center gap-1.5 border border-slate-300">
+                            <i class="fa-solid fa-file-excel text-teal-600"></i> Unduh Tabel Ringkasan (CSV)
+                        </button>
+                        <button onclick="window.print()" class="px-3.5 py-1.5 bg-rose-50 hover:bg-rose-100 text-rose-700 text-xs font-semibold rounded-xl transition flex items-center gap-1.5 border border-rose-200">
+                            <i class="fa-solid fa-file-pdf text-rose-600"></i> Simpan PDF
+                        </button>
+                    </div>
+                </div>
+
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left border-collapse text-xs">
+                        <thead>
+                            <tr class="bg-slate-50 border-b border-slate-200 text-slate-600 font-semibold uppercase tracking-wider text-[11px]">
+                                <th class="p-3.5">Wilayah / Titik Pengamatan</th>
+                                <th class="p-3.5">Provider</th>
+                                <th class="p-3.5 text-center">Sampel</th>
+                                <th class="p-3.5 text-right">Rata-rata RSRP</th>
+                                <th class="p-3.5 text-right">Median RSRP</th>
+                                <th class="p-3.5 text-right">% Sinyal Lemah</th>
+                                <th class="p-3.5 text-center">Status Jaringan</th>
+                            </tr>
+                        </thead>
+                        <tbody id="summaryTableBody" class="divide-y divide-slate-100 text-slate-700"></tbody>
+                    </table>
+                </div>
+
+                <div class="p-4 bg-slate-50 border-t border-slate-100 text-xs text-slate-500 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2">
+                    <span>* Metrik sinyal lemah dihitung berdasarkan proporsi sampel RSRP &lt; -100 dBm (Standar 3GPP &amp; Kominfo).</span>
+                    <span class="font-semibold text-slate-700">Sub-unit Nagari Sei Nyalo &amp; Mandeh</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- =================================================================== -->
+        <!-- TAB 6: HUB GOOGLE EARTH 3D & EKSPLORASI TOPOGRAFI                   -->
+        <!-- =================================================================== -->
+        <div id="tab-earth" class="tab-pane hidden space-y-6">
+            <div class="bg-gradient-to-r from-blue-700 via-indigo-700 to-slate-900 rounded-3xl p-6 sm:p-8 text-white shadow-xl relative overflow-hidden">
+                <div class="relative z-10 max-w-2xl space-y-3">
+                    <span class="px-3 py-1 rounded-full text-xs font-bold bg-white/20 text-cyan-200 backdrop-blur-md inline-flex items-center gap-1.5 border border-white/20">
+                        <i class="fa-solid fa-earth-americas text-cyan-300"></i> Eksplorasi 3D Mandeh & Sei Nyalo
+                    </span>
+                    <h2 class="text-2xl sm:text-3xl font-extrabold tracking-tight">Hub Topografi & Garis Pandang Antena di Google Earth 3D</h2>
+                    <p class="text-blue-100 text-xs sm:text-sm leading-relaxed">
+                        Topografi Kawasan Mandeh terdiri atas teluk curam, pulau berbukit tinggi (seperti Pulau Cubadak & Sironjong), serta perairan terbuka. Dengan Google Earth 3D, Anda dapat memutar sudut elevasi (*tilt*) 360° untuk melihat apakah sinyal lemah di titik tertentu disebabkan oleh punggung bukit (*terrain obstruction*) dari arah menara BTS.
+                    </p>
+                    <div class="pt-2 flex flex-wrap items-center gap-3">
+                        <button onclick="exportKMLGoogleEarth()" class="px-4 py-2.5 bg-white hover:bg-blue-50 text-blue-900 text-xs font-bold rounded-xl shadow-md transition flex items-center gap-2">
+                            <i class="fa-solid fa-download text-blue-600"></i> Unduh File KML (Semua Titik & Tower BTS)
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Interactive Inspector Card -->
+            <div class="bg-white rounded-3xl border border-slate-200 shadow-sm p-6 space-y-5">
+                <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 pb-4 border-b border-slate-100">
+                    <div>
+                        <h4 class="text-sm sm:text-base font-extrabold text-slate-900 flex items-center gap-2">
+                            <i class="fa-solid fa-crosshairs text-blue-600"></i> Pilih Titik Pengamatan untuk Inspeksi 3D:
+                        </h4>
+                        <p class="text-xs text-slate-500 mt-0.5">Pilih lokasi dari daftar survei untuk melihat data koordinat dan membuka posisi presisi di Google Earth.</p>
+                    </div>
+                    <div class="w-full sm:w-auto">
+                        <select id="hubEarthLocationSelect" onchange="updateHubEarthDetails()" class="w-full sm:w-80 p-2.5 bg-slate-50 border border-slate-300 rounded-xl text-slate-800 font-semibold text-xs focus:ring-2 focus:ring-blue-500 focus:outline-none"></select>
+                    </div>
+                </div>
+
+                <!-- Detail Target Box -->
+                <div id="hubEarthLocationDetails" class="space-y-4"></div>
+
+                <div class="pt-4 border-t border-slate-100 flex flex-col sm:flex-row justify-end items-center gap-3">
+                    <a id="hubBtnLaunchEarth3D" href="#" target="_blank" class="w-full sm:w-auto px-6 py-3 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-bold rounded-xl shadow-md shadow-blue-500/20 text-xs transition flex items-center justify-center gap-2">
+                        <span>Buka Titik Ini Langsung di Google Earth 3D</span>
+                        <i class="fa-solid fa-arrow-up-right-from-square text-[10px]"></i>
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <!-- =================================================================== -->
+        <!-- =================================================================== -->
+        <!-- TAB 8: RECOMMENDER ENGINE                                            -->
+        <!-- =================================================================== -->
+        <div id="tab-recommender" class="tab-pane hidden space-y-6">
+            <div class="bg-gradient-to-r from-amber-500 via-orange-500 to-rose-600 rounded-3xl p-6 sm:p-8 text-white shadow-xl">
+                <div class="space-y-3">
+                    <span class="px-3 py-1 rounded-full text-xs font-bold bg-white/20 text-amber-100 inline-flex items-center gap-1.5 border border-white/20"><i class="fa-solid fa-lightbulb text-amber-200"></i> Smart Recommender Engine</span>
+                    <h2 class="text-2xl sm:text-3xl font-extrabold tracking-tight">Rekomendasi Spot Terbaik untuk QRIS &amp; Live Streaming</h2>
+                    <p class="text-amber-50 text-xs sm:text-sm leading-relaxed max-w-2xl">Modul rekomendasi berbasis lokasi untuk pelaku UMKM, homestay, dan content creator di Kawasan Wisata Mandeh.</p>
+                </div>
+            </div>
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                <div class="bg-white rounded-3xl border border-slate-200 shadow-sm overflow-hidden">
+                    <div class="p-5 border-b border-slate-100 bg-gradient-to-r from-green-50 to-emerald-50">
+                        <h3 class="text-sm font-extrabold text-slate-900 flex items-center gap-2"><i class="fa-solid fa-qrcode text-emerald-600 text-lg"></i> Spot QRIS Stabil</h3>
+                        <p class="text-xs text-slate-500 mt-1">Lokasi aman untuk transaksi digital QRIS (Upload &ge; 5 Mbps &amp; Latency &le; 50ms).</p>
+                    </div>
+                    <div id="qrisRecommendations" class="p-4 space-y-3 max-h-80 overflow-y-auto"></div>
+                    <div class="p-3 border-t border-slate-100 bg-slate-50">
+                        <button onclick="renderRecommendations()" class="w-full py-2 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold rounded-xl transition flex items-center justify-center gap-2"><i class="fa-solid fa-rotate"></i> Perbarui Rekomendasi</button>
+                    </div>
+                </div>
+                <div class="bg-white rounded-3xl border border-slate-200 shadow-sm overflow-hidden">
+                    <div class="p-5 border-b border-slate-100 bg-gradient-to-r from-rose-50 to-pink-50">
+                        <h3 class="text-sm font-extrabold text-slate-900 flex items-center gap-2"><i class="fa-solid fa-video text-rose-600 text-lg"></i> Spot Live Streaming &amp; Content Creator</h3>
+                        <p class="text-xs text-slate-500 mt-1">Lokasi terbaik untuk siaran langsung wisata (Upload &ge; 8 Mbps &amp; SINR &ge; 10 dB).</p>
+                    </div>
+                    <div id="streamingRecommendations" class="p-4 space-y-3 max-h-80 overflow-y-auto"></div>
+                    <div class="p-3 border-t border-slate-100 bg-slate-50">
+                        <button onclick="renderRecommendations()" class="w-full py-2 bg-rose-600 hover:bg-rose-700 text-white text-xs font-bold rounded-xl transition flex items-center justify-center gap-2"><i class="fa-solid fa-rotate"></i> Perbarui Rekomendasi</button>
+                    </div>
+                </div>
+            </div>
+            <div class="bg-white rounded-3xl border border-slate-200 shadow-sm overflow-hidden">
+                <div class="p-5 border-b border-slate-100 bg-gradient-to-r from-rose-50 to-red-50">
+                    <h3 class="text-sm font-extrabold text-slate-900 flex items-center gap-2"><i class="fa-solid fa-triangle-exclamation text-rose-600"></i> Zona Kritis / Blank Spot &mdash; Prioritas Penanganan</h3>
+                    <p class="text-xs text-slate-500 mt-1">Lokasi dengan sinyal sangat lemah (RSRP &lt; -100 dBm) yang perlu segera mendapat perhatian Diskominfo atau Operator.</p>
+                </div>
+                <div id="blankSpotWarnings" class="p-4 space-y-3"></div>
+            </div>
+        </div>
+
+        <!-- =================================================================== -->
+        <!-- TAB 9: QR CODE CROWDSOURCING                                         -->
+        <!-- =================================================================== -->
+        <div id="tab-qrcode" class="tab-pane hidden space-y-6">
+            <div class="bg-gradient-to-r from-slate-800 via-slate-900 to-black rounded-3xl p-6 sm:p-8 text-white shadow-xl">
+                <div class="space-y-3">
+                    <span class="px-3 py-1 rounded-full text-xs font-bold bg-white/10 text-slate-200 inline-flex items-center gap-1.5 border border-white/20"><i class="fa-solid fa-users text-slate-300"></i> Citizen Science &mdash; Partisipasi Publik</span>
+                    <h2 class="text-2xl sm:text-3xl font-extrabold tracking-tight">QR Code Survei Sinyal Partisipatif Publik</h2>
+                    <p class="text-slate-300 text-xs sm:text-sm leading-relaxed max-w-2xl">Generate QR Code yang bisa dipasang di dermaga, homestay, atau kantor nagari. Wisatawan dan warga lokal scan QR untuk melaporkan kondisi sinyal mereka.</p>
+                </div>
+            </div>
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                <div class="bg-white rounded-3xl border border-slate-200 shadow-sm p-6 space-y-5">
+                    <h3 class="text-sm font-extrabold text-slate-900 flex items-center gap-2"><i class="fa-solid fa-qrcode text-slate-700 text-lg"></i> Generate QR Code untuk Lokasi</h3>
+                    <div class="space-y-3">
+                        <div>
+                            <label class="block text-xs font-semibold text-slate-700 mb-1">Pilih Lokasi Spot</label>
+                            <select id="qrLocationSelect" class="w-full p-2.5 bg-slate-50 border border-slate-300 rounded-xl text-slate-800 text-xs focus:ring-2 focus:ring-teal-500 focus:outline-none">
+                                <option value="Dermaga Tarusan">Dermaga Tarusan / Nagari Mandeh</option>
+                                <option value="Kantor Wali Nagari Mandeh">Kantor Wali Nagari Mandeh</option>
+                                <option value="Kawasan Wisata Pulau Cubadak">Kawasan Wisata Pulau Cubadak</option>
+                                <option value="Dermaga Carocok Anau Mandeh">Dermaga Carocok Anau Mandeh</option>
+                                <option value="Kantor Wali Nagari Sei Nyalo">Kantor Wali Nagari Sei Nyalo</option>
+                                <option value="Puncak Mandeh Viewing Point">Puncak Mandeh (Viewing Point)</option>
+                                <option value="Kawasan Homestay Pantai Nyalo">Kawasan Homestay &amp; Pantai Nyalo</option>
+                                <option value="Dermaga Nelayan TPI Sungai Nyalo">Dermaga Nelayan TPI Sungai Nyalo</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-xs font-semibold text-slate-700 mb-1">Operator Terpasang di Spot Ini</label>
+                            <select id="qrOperatorSelect" class="w-full p-2.5 bg-slate-50 border border-slate-300 rounded-xl text-slate-800 text-xs focus:ring-2 focus:ring-teal-500 focus:outline-none">
+                                <option value="Telkomsel">Telkomsel</option>
+                                <option value="by.U">by.U</option>
+                                <option value="Indosat">Indosat Ooredoo</option>
+                                <option value="XL">XL Axiata</option>
+                            </select>
+                        </div>
+                        <button onclick="generateQRCode()" class="w-full py-3 bg-slate-800 hover:bg-slate-900 text-white font-bold rounded-2xl shadow-md transition flex items-center justify-center gap-2 text-sm">
+                            <i class="fa-solid fa-qrcode"></i> Generate QR Code
+                        </button>
+                    </div>
+                </div>
+                <div class="bg-white rounded-3xl border border-slate-200 shadow-sm p-6 flex flex-col items-center justify-center space-y-4 min-h-64">
+                    <div id="qrCodeDisplay" class="text-center text-slate-300 space-y-2">
+                        <i class="fa-solid fa-qrcode text-6xl"></i>
+                        <p class="text-xs">QR Code akan tampil di sini setelah di-generate</p>
+                    </div>
+                    <div id="qrCodeInfo" class="hidden text-center space-y-3 w-full">
+                        <div id="qrCodeCanvas" class="flex items-center justify-center"></div>
+                        <p class="text-xs font-bold text-slate-700" id="qrLocationLabel"></p>
+                        <p class="text-[10px] text-slate-400" id="qrUrlDisplay"></p>
+                        <button onclick="downloadQRCode()" class="px-4 py-2 bg-teal-600 hover:bg-teal-700 text-white text-xs font-bold rounded-xl transition flex items-center justify-center gap-2 mx-auto">
+                            <i class="fa-solid fa-download"></i> Unduh QR Code PNG
+                        </button>
+                    </div>
+                </div>
+            </div>
+            <div class="bg-white rounded-3xl border border-slate-200 shadow-sm p-6">
+                <h3 class="text-sm font-extrabold text-slate-900 mb-4 flex items-center gap-2"><i class="fa-solid fa-circle-info text-blue-500"></i> Cara Penggunaan QR Crowdsourcing</h3>
+                <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 text-xs">
+                    <div class="flex items-start gap-3 p-4 bg-slate-50 rounded-2xl border border-slate-200">
+                        <span class="w-8 h-8 rounded-full bg-teal-600 text-white flex items-center justify-center text-sm font-bold shrink-0">1</span>
+                        <div><p class="font-bold text-slate-800 mb-1">Generate &amp; Cetak QR</p><p class="text-slate-500">Generate QR Code untuk setiap spot strategis (dermaga, homestay, warung) dan cetak untuk dipasang di lokasi tersebut.</p></div>
+                    </div>
+                    <div class="flex items-start gap-3 p-4 bg-slate-50 rounded-2xl border border-slate-200">
+                        <span class="w-8 h-8 rounded-full bg-teal-600 text-white flex items-center justify-center text-sm font-bold shrink-0">2</span>
+                        <div><p class="font-bold text-slate-800 mb-1">Warga Scan QR</p><p class="text-slate-500">Wisatawan atau warga lokal memindai QR dari HP. Form otomatis terisi nama lokasi dan operator, mereka hanya mengisi nilai sinyal RSRP dari HP.</p></div>
+                    </div>
+                    <div class="flex items-start gap-3 p-4 bg-slate-50 rounded-2xl border border-slate-200">
+                        <span class="w-8 h-8 rounded-full bg-teal-600 text-white flex items-center justify-center text-sm font-bold shrink-0">3</span>
+                        <div><p class="font-bold text-slate-800 mb-1">Data Masuk ke Dashboard</p><p class="text-slate-500">Laporan langsung masuk ke Data Log dashboard. Peta diperbarui secara realtime menambah titik sampel crowdsourcing dari masyarakat.</p></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- =================================================================== -->
+        <!-- TAB 10: SURAT REKOMENDASI RESMI                                      -->
+        <!-- =================================================================== -->
+        <div id="tab-report-letter" class="tab-pane hidden space-y-6">
+            <div class="bg-gradient-to-r from-rose-700 via-red-700 to-slate-900 rounded-3xl p-6 sm:p-8 text-white shadow-xl">
+                <div class="space-y-3">
+                    <span class="px-3 py-1 rounded-full text-xs font-bold bg-white/20 text-rose-100 inline-flex items-center gap-1.5 border border-white/20"><i class="fa-solid fa-file-signature text-rose-200"></i> Auto-Document Generator</span>
+                    <h2 class="text-2xl sm:text-3xl font-extrabold tracking-tight">Generator Surat Rekomendasi Resmi ke Diskominfo / Operator</h2>
+                    <p class="text-rose-100 text-xs sm:text-sm leading-relaxed max-w-2xl">Tombol sekali klik yang memproses seluruh data blank spot menjadi Dokumen Surat Rekomendasi Resmi berformat baku siap ditandatangani Wali Nagari.</p>
+                </div>
+            </div>
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                <div class="bg-white rounded-3xl border border-slate-200 shadow-sm p-6 space-y-4">
+                    <h3 class="text-sm font-extrabold text-slate-900 flex items-center gap-2"><i class="fa-solid fa-gear text-slate-600"></i> Pengaturan Dokumen</h3>
+                    <div class="space-y-3 text-xs">
+                        <div>
+                            <label class="block font-semibold text-slate-700 mb-1">Nama Wali Nagari</label>
+                            <input type="text" id="letterHeadName" value="Drs. Syamsurizal, M.M." class="w-full p-2.5 bg-slate-50 border border-slate-300 rounded-xl text-slate-800 focus:ring-2 focus:ring-teal-500 focus:outline-none">
+                        </div>
+                        <div>
+                            <label class="block font-semibold text-slate-700 mb-1">Tujuan Surat</label>
+                            <select id="letterTarget" class="w-full p-2.5 bg-slate-50 border border-slate-300 rounded-xl text-slate-800 focus:ring-2 focus:ring-teal-500 focus:outline-none">
+                                <option value="Diskominfo">Dinas Kominfo Kab. Pesisir Selatan</option>
+                                <option value="Telkomsel">PT Telekomunikasi Selular (Telkomsel)</option>
+                                <option value="Indosat">PT Indosat Ooredoo Hutchison</option>
+                                <option value="BAKTI">BAKTI Kominfo RI</option>
+                                <option value="DPR">Anggota DPRD Kab. Pesisir Selatan</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block font-semibold text-slate-700 mb-1">Perihal Utama Surat</label>
+                            <select id="letterSubject" class="w-full p-2.5 bg-slate-50 border border-slate-300 rounded-xl text-slate-800 focus:ring-2 focus:ring-teal-500 focus:outline-none">
+                                <option value="blankspot">Permohonan Penanganan Blank Spot</option>
+                                <option value="bts">Permohonan Pembangunan Tower BTS Baru</option>
+                                <option value="peningkatan">Permohonan Peningkatan Kapasitas Jaringan</option>
+                                <option value="program">Usulan Program Desa Digital</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block font-semibold text-slate-700 mb-1">Nomor Surat</label>
+                            <input type="text" id="letterNumber" value="470/01/KNN/X/2026" class="w-full p-2.5 bg-slate-50 border border-slate-300 rounded-xl text-slate-800 focus:ring-2 focus:ring-teal-500 focus:outline-none font-mono">
+                        </div>
+                        <button onclick="generateLetter()" class="w-full py-3 bg-gradient-to-r from-rose-600 to-red-600 hover:from-rose-700 hover:to-red-700 text-white font-bold rounded-2xl shadow-md transition flex items-center justify-center gap-2">
+                            <i class="fa-solid fa-wand-magic-sparkles"></i> Generate Surat Otomatis
+                        </button>
+                    </div>
+                </div>
+                <div class="lg:col-span-2 bg-white rounded-3xl border border-slate-200 shadow-sm overflow-hidden">
+                    <div class="p-4 border-b border-slate-100 flex items-center justify-between">
+                        <h3 class="text-sm font-extrabold text-slate-900 flex items-center gap-2"><i class="fa-solid fa-file-lines text-rose-600"></i> Preview Surat Rekomendasi</h3>
+                        <div class="flex gap-2">
+                            <button onclick="window.print()" class="px-3 py-1.5 bg-rose-50 hover:bg-rose-100 text-rose-700 border border-rose-200 text-xs font-semibold rounded-xl transition flex items-center gap-1.5"><i class="fa-solid fa-file-pdf"></i> Unduh / Simpan PDF</button>
+                        </div>
+                    </div>
+                    <div id="letterPreview" class="p-8 text-xs leading-relaxed text-slate-700 max-h-[600px] overflow-y-auto">
+                        <div class="text-center text-slate-300 py-16 space-y-3">
+                            <i class="fa-solid fa-file-signature text-5xl block"></i>
+                            <p>Klik "Generate Surat Otomatis" untuk melihat pratinjau dokumen resmi</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </main>
+
+    <!-- Footer -->
+    <footer class="bg-white text-slate-500 text-xs py-8 border-t border-slate-200 mt-12">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col md:flex-row justify-between items-center gap-4 text-center md:text-left">
+            <div class="space-y-1">
+                <p class="font-bold text-slate-800 flex items-center justify-center md:justify-start gap-2">
+                    <i class="fa-solid fa-graduation-cap text-teal-600"></i> Sistem Monitoring Jaringan Internet KKN-PPM UGM
+                </p>
+                <p class="text-slate-500">Sub-unit Nagari Sei Nyalo Mudiak Aia & Nagari Mandeh, Kecamatan Koto XI Tarusan, Kabupaten Pesisir Selatan, Sumatera Barat.</p>
+            </div>
+            <div class="text-slate-500 flex items-center gap-4 text-xs font-medium">
+                <span><i class="fa-solid fa-wifi text-teal-600 mr-1"></i>Telekomunikasi Digital Nagari</span>
+                <span>•</span>
+                <span class="text-slate-700">Tim Saintek KKN Mandeh 2026</span>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Google Earth Modal -->
+    <div id="earthModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm hidden z-[2000] flex items-center justify-center p-4 overflow-y-auto no-print">
+        <div class="bg-white rounded-3xl max-w-2xl w-full shadow-2xl border border-slate-200 overflow-hidden my-8 transform transition-all">
+            <div class="bg-gradient-to-r from-blue-700 via-indigo-700 to-slate-900 px-6 py-4 text-white flex justify-between items-center">
+                <div class="flex items-center gap-2.5">
+                    <i class="fa-solid fa-earth-americas text-cyan-300 text-lg"></i>
+                    <div>
+                        <h3 class="font-bold text-base leading-tight">Hubungkan dengan Google Earth 3D</h3>
+                        <p class="text-xs text-blue-200">Inspeksi topografi bukit, elevasi, dan garis pandang antena (*Line of Sight*)</p>
+                    </div>
+                </div>
+                <button onclick="closeEarthModal()" class="text-slate-300 hover:text-white text-lg"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+
+            <div class="p-6 space-y-5 text-xs text-slate-700">
+                <div class="bg-blue-50 border border-blue-200 rounded-2xl p-4 space-y-2">
+                    <h4 class="font-bold text-blue-900 flex items-center gap-1.5 text-xs">
+                        <i class="fa-solid fa-circle-info text-blue-600"></i> Mengapa Perlu Tinjauan Google Earth 3D?
+                    </h4>
+                    <p class="text-blue-800 text-[11px] leading-relaxed">
+                        Kawasan Mandeh terdiri dari teluk berbukit terjal, pulau-pulau karang tinggi (seperti Pulau Cubadak & Sironjong), serta hutan mangrove. Dengan Google Earth 3D, Anda dapat memutar sudut pandang (*tilt & rotate*) 360° untuk melihat apakah sinyal lemah disebabkan oleh punggung bukit (*terrain obstruction*).
+                    </p>
+                </div>
+
+                <div>
+                    <label class="block font-bold text-slate-800 mb-1.5 text-xs">Pilih Titik Pengamatan untuk Ditinjau di Google Earth 3D:</label>
+                    <select id="earthLocationSelect" onchange="updateEarthDetails()" class="w-full p-3 bg-slate-50 border border-slate-300 rounded-xl text-slate-800 font-semibold focus:ring-2 focus:ring-blue-500 focus:outline-none"></select>
+                </div>
+
+                <div id="earthLocationDetails" class="bg-slate-50 rounded-2xl p-4 border border-slate-200 space-y-3"></div>
+
+                <div class="flex flex-col sm:flex-row items-center justify-between gap-3 pt-3 border-t border-slate-200">
+                    <button type="button" onclick="exportKMLGoogleEarth()" class="w-full sm:w-auto px-4 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold rounded-xl transition flex items-center justify-center gap-2 border border-slate-300 text-xs">
+                        <i class="fa-solid fa-download text-blue-600"></i> Unduh File KML (Semua Titik)
+                    </button>
+                    <div class="flex items-center gap-2 w-full sm:w-auto">
+                        <button type="button" onclick="closeEarthModal()" class="flex-1 sm:flex-none px-4 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 font-medium rounded-xl transition">Tutup</button>
+                        <a id="btnLaunchEarth3D" href="#" target="_blank" class="flex-1 sm:flex-none px-5 py-2.5 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-bold rounded-xl shadow-md shadow-blue-500/20 transition flex items-center justify-center gap-2">
+                            <span>Buka Google Earth Web 3D</span>
+                            <i class="fa-solid fa-arrow-up-right-from-square text-[10px]"></i>
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal Form Add -->
+    <div id="addModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm hidden z-[2000] flex items-center justify-center p-4 overflow-y-auto no-print">
+        <div class="bg-white rounded-3xl max-w-lg w-full shadow-2xl border border-slate-200 overflow-hidden my-8 transform transition-all">
+            <div class="bg-gradient-to-r from-teal-700 via-teal-800 to-slate-900 px-6 py-4 text-white flex justify-between items-center">
+                <h3 class="font-bold text-sm sm:text-base flex items-center gap-2">
+                    <i class="fa-solid fa-satellite-dish text-teal-300"></i> Form Input Log Pengukuran Sinyal
+                </h3>
+                <button onclick="closeAddModal()" class="text-slate-300 hover:text-white text-lg"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+            
+            <form id="addDataForm" onsubmit="handleFormSubmit(event)" class="p-6 space-y-4 text-xs text-slate-700">
+                <div>
+                    <label class="block font-semibold text-slate-800 mb-1">Nama Wilayah / Spot Lokasi</label>
+                    <input type="text" id="inputLocation" required placeholder="Contoh: Dermaga Nagari Sei Nyalo" class="w-full p-2.5 bg-slate-50 border border-slate-300 rounded-xl text-slate-800 focus:ring-2 focus:ring-teal-500 focus:outline-none">
+                </div>
+
+                <div class="grid grid-cols-2 gap-3">
+                    <div>
+                        <label class="block font-semibold text-slate-800 mb-1">Operator Seluler</label>
+                        <select id="inputOperator" required class="w-full p-2.5 bg-slate-50 border border-slate-300 rounded-xl text-slate-800 focus:ring-2 focus:ring-teal-500 focus:outline-none">
+                            <option value="Telkomsel">Telkomsel</option>
+                            <option value="by.U">by.U</option>
+                            <option value="Indosat">Indosat Ooredoo</option>
+                            <option value="XL">XL Axiata</option>
+                            <option value="Smartfren">Smartfren</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block font-semibold text-slate-800 mb-1">Daya RSRP (dBm)</label>
+                        <input type="number" id="inputRSRP" required step="0.1" placeholder="-92.5" class="w-full p-2.5 bg-slate-50 border border-slate-300 rounded-xl text-slate-800 focus:ring-2 focus:ring-teal-500 focus:outline-none">
+                    </div>
+                </div>
+
+                <div class="p-3.5 bg-slate-50 rounded-2xl border border-slate-200 space-y-2">
+                    <div class="flex justify-between items-center">
+                        <span class="font-semibold text-slate-800 flex items-center gap-1.5"><i class="fa-solid fa-location-crosshairs text-teal-600"></i> Koordinat Geospasial</span>
+                        <button type="button" onclick="getCurrentGPS()" class="text-[11px] text-teal-700 font-bold hover:underline flex items-center gap-1"><i class="fa-solid fa-satellite"></i> Ambil GPS Saat Ini</button>
+                    </div>
+                    <div class="grid grid-cols-2 gap-2">
+                        <div>
+                            <span class="text-[10px] text-slate-500 mb-0.5 block">Latitude</span>
+                            <input type="number" id="inputLat" required step="0.000001" placeholder="-1.183400" class="w-full p-2 bg-white border border-slate-300 rounded-xl text-slate-800 font-mono text-xs">
+                        </div>
+                        <div>
+                            <span class="text-[10px] text-slate-500 mb-0.5 block">Longitude</span>
+                            <input type="number" id="inputLng" required step="0.000001" placeholder="100.417000" class="w-full p-2 bg-white border border-slate-300 rounded-xl text-slate-800 font-mono text-xs">
+                        </div>
+                    </div>
+                    <div class="flex items-center justify-between text-[10px] text-slate-500 pt-1">
+                        <button type="button" onclick="autoFillMandehCenter()" class="hover:text-teal-700 underline">Set Pusat Mandeh (-1.1834, 100.417)</button>
+                        <button type="button" onclick="autoFillNyaloCenter()" class="hover:text-teal-700 underline">Set Kantor Sei Nyalo (-1.1895, 100.4285)</button>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-2 gap-3">
+                    <div>
+                        <label class="block font-semibold text-slate-800 mb-1">RSRQ (dB)</label>
+                        <input type="number" id="inputRSRQ" required step="0.1" placeholder="-9.5" class="w-full p-2.5 bg-slate-50 border border-slate-300 rounded-xl text-slate-800 focus:ring-2 focus:ring-teal-500 focus:outline-none">
+                    </div>
+                    <div>
+                        <label class="block font-semibold text-slate-800 mb-1">SINR (dB)</label>
+                        <input type="number" id="inputSINR" required step="0.1" placeholder="14.2" class="w-full p-2.5 bg-slate-50 border border-slate-300 rounded-xl text-slate-800 focus:ring-2 focus:ring-teal-500 focus:outline-none">
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-3 gap-2">
+                    <div>
+                        <label class="block font-semibold text-slate-800 mb-1">Download (Mbps)</label>
+                        <input type="number" id="inputDownload" required step="0.1" placeholder="24.5" class="w-full p-2.5 bg-slate-50 border border-slate-300 rounded-xl text-slate-800 font-mono">
+                    </div>
+                    <div>
+                        <label class="block font-semibold text-slate-800 mb-1">Upload (Mbps)</label>
+                        <input type="number" id="inputUpload" required step="0.1" placeholder="9.8" class="w-full p-2.5 bg-slate-50 border border-slate-300 rounded-xl text-slate-800 font-mono">
+                    </div>
+                    <div>
+                        <label class="block font-semibold text-slate-800 mb-1">Latency (ms)</label>
+                        <input type="number" id="inputLatency" required step="1" placeholder="35" class="w-full p-2.5 bg-slate-50 border border-slate-300 rounded-xl text-slate-800 font-mono">
+                    </div>
+                </div>
+
+                <div>
+                    <label class="block font-semibold text-slate-800 mb-1">Keterangan Bentang Alam / Topografi Medan</label>
+                    <input type="text" id="inputTerrain" placeholder="Contoh: Dataran pesisir teluk berbukit, Line of Sight terbuka" class="w-full p-2.5 bg-slate-50 border border-slate-300 rounded-xl text-slate-800 focus:ring-2 focus:ring-teal-500 focus:outline-none">
+                </div>
+
+                <div class="pt-3 flex justify-end gap-2.5 border-t border-slate-200">
+                    <button type="button" onclick="closeAddModal()" class="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 font-medium rounded-xl transition">Batal</button>
+                    <button type="submit" class="px-5 py-2 bg-teal-600 hover:bg-teal-700 text-white font-semibold rounded-xl shadow-md shadow-teal-600/20 transition">Simpan Log Pengukuran</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Modal Form Edit (CRUD Update) -->
+    <div id="editModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm hidden z-[2000] flex items-center justify-center p-4 overflow-y-auto no-print">
+        <div class="bg-white rounded-3xl max-w-lg w-full shadow-2xl border border-slate-200 overflow-hidden my-8 transform transition-all">
+            <div class="bg-gradient-to-r from-amber-600 via-amber-700 to-slate-900 px-6 py-4 text-white flex justify-between items-center">
+                <h3 class="font-bold text-sm sm:text-base flex items-center gap-2">
+                    <i class="fa-solid fa-pen-to-square text-amber-300"></i> Form Edit Log Pengukuran Sinyal
+                </h3>
+                <button onclick="closeEditModal()" class="text-slate-300 hover:text-white text-lg"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+            
+            <form id="editDataForm" onsubmit="handleEditFormSubmit(event)" class="p-6 space-y-4 text-xs text-slate-700">
+                <input type="hidden" id="editId">
+                <div>
+                    <label class="block font-semibold text-slate-800 mb-1">Nama Wilayah / Spot Lokasi</label>
+                    <input type="text" id="editLocation" required placeholder="Contoh: Dermaga Nagari Sei Nyalo" class="w-full p-2.5 bg-slate-50 border border-slate-300 rounded-xl text-slate-800 focus:ring-2 focus:ring-amber-500 focus:outline-none">
+                </div>
+
+                <div class="grid grid-cols-2 gap-3">
+                    <div>
+                        <label class="block font-semibold text-slate-800 mb-1">Operator Seluler</label>
+                        <select id="editOperator" required class="w-full p-2.5 bg-slate-50 border border-slate-300 rounded-xl text-slate-800 focus:ring-2 focus:ring-amber-500 focus:outline-none">
+                            <option value="Telkomsel">Telkomsel</option>
+                            <option value="by.U">by.U</option>
+                            <option value="Indosat">Indosat Ooredoo</option>
+                            <option value="XL">XL Axiata</option>
+                            <option value="Smartfren">Smartfren</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block font-semibold text-slate-800 mb-1">Daya RSRP (dBm)</label>
+                        <input type="number" id="editRSRP" required step="0.1" placeholder="-92.5" class="w-full p-2.5 bg-slate-50 border border-slate-300 rounded-xl text-slate-800 focus:ring-2 focus:ring-amber-500 focus:outline-none">
+                    </div>
+                </div>
+
+                <div class="p-3.5 bg-slate-50 rounded-2xl border border-slate-200 space-y-2">
+                    <div class="flex justify-between items-center">
+                        <span class="font-semibold text-slate-800 flex items-center gap-1.5"><i class="fa-solid fa-location-crosshairs text-amber-600"></i> Koordinat Geospasial</span>
+                        <button type="button" onclick="getCurrentGPS('edit')" class="text-[11px] text-amber-700 font-bold hover:underline flex items-center gap-1"><i class="fa-solid fa-satellite"></i> Ambil GPS Saat Ini</button>
+                    </div>
+                    <div class="grid grid-cols-2 gap-2">
+                        <div>
+                            <span class="text-[10px] text-slate-500 mb-0.5 block">Latitude</span>
+                            <input type="number" id="editLat" required step="0.000001" placeholder="-1.183400" class="w-full p-2 bg-white border border-slate-300 rounded-xl text-slate-800 font-mono text-xs">
+                        </div>
+                        <div>
+                            <span class="text-[10px] text-slate-500 mb-0.5 block">Longitude</span>
+                            <input type="number" id="editLng" required step="0.000001" placeholder="100.417000" class="w-full p-2 bg-white border border-slate-300 rounded-xl text-slate-800 font-mono text-xs">
+                        </div>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-2 gap-3">
+                    <div>
+                        <label class="block font-semibold text-slate-800 mb-1">RSRQ (dB)</label>
+                        <input type="number" id="editRSRQ" required step="0.1" placeholder="-9.5" class="w-full p-2.5 bg-slate-50 border border-slate-300 rounded-xl text-slate-800 focus:ring-2 focus:ring-amber-500 focus:outline-none">
+                    </div>
+                    <div>
+                        <label class="block font-semibold text-slate-800 mb-1">SINR (dB)</label>
+                        <input type="number" id="editSINR" required step="0.1" placeholder="14.2" class="w-full p-2.5 bg-slate-50 border border-slate-300 rounded-xl text-slate-800 focus:ring-2 focus:ring-amber-500 focus:outline-none">
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-3 gap-2">
+                    <div>
+                        <label class="block font-semibold text-slate-800 mb-1">Download (Mbps)</label>
+                        <input type="number" id="editDownload" required step="0.1" placeholder="24.5" class="w-full p-2.5 bg-slate-50 border border-slate-300 rounded-xl text-slate-800 font-mono">
+                    </div>
+                    <div>
+                        <label class="block font-semibold text-slate-800 mb-1">Upload (Mbps)</label>
+                        <input type="number" id="editUpload" required step="0.1" placeholder="9.8" class="w-full p-2.5 bg-slate-50 border border-slate-300 rounded-xl text-slate-800 font-mono">
+                    </div>
+                    <div>
+                        <label class="block font-semibold text-slate-800 mb-1">Latency (ms)</label>
+                        <input type="number" id="editLatency" required step="1" placeholder="35" class="w-full p-2.5 bg-slate-50 border border-slate-300 rounded-xl text-slate-800 font-mono">
+                    </div>
+                </div>
+
+                <div>
+                    <label class="block font-semibold text-slate-800 mb-1">Keterangan Bentang Alam / Topografi Medan</label>
+                    <input type="text" id="editTerrain" placeholder="Contoh: Dataran pesisir teluk berbukit, sinyal terhalang kontur pulau" class="w-full p-2.5 bg-slate-50 border border-slate-300 rounded-xl text-slate-800 focus:ring-2 focus:ring-amber-500 focus:outline-none">
+                </div>
+
+                <div class="pt-3 flex justify-end gap-2.5 border-t border-slate-200">
+                    <button type="button" onclick="closeEditModal()" class="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 font-medium rounded-xl transition">Batal</button>
+                    <button type="submit" class="px-5 py-2 bg-amber-600 hover:bg-amber-700 text-white font-semibold rounded-xl shadow-md shadow-amber-600/20 transition">Simpan Perubahan Log</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Toast Notification -->
+    <div id="toast" class="fixed bottom-6 right-6 bg-slate-900 text-white px-4 py-3 rounded-2xl shadow-2xl border border-slate-700 hidden z-[3000] flex items-center gap-3 text-xs">
+        <i id="toastIcon" class="fa-solid fa-circle-check text-emerald-400 text-base"></i>
+        <span id="toastMsg" class="font-medium">Notifikasi berhasil diproses.</span>
+    </div>
+
+    <!-- External Custom JavaScript -->
+    <script src="app.js"></script>
+</body>
+</html>
