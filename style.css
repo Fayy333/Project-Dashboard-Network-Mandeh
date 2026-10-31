@@ -2,12 +2,51 @@
    STYLE.CSS - Dashboard Monitoring Jaringan KKN UGM Mandeh & Sei Nyalo
    ========================================================================== */
 
+
 /* 1. Map Container & Leaflet Customization */
+
 #map {
     width: 100%;
     height: 540px;
     z-index: 10;
     border-radius: 1rem;
+    transition: height 0.3s ease;
+}
+
+#mapSignalLegend {
+    position: absolute !important;
+    left: 1rem !important;
+    bottom: 1rem !important;
+    z-index: 12 !important;
+    pointer-events: auto;
+}
+
+
+/* Fullscreen Map Mode */
+
+.map-fullscreen-card {
+    position: fixed !important;
+    inset: 0 !important;
+    z-index: 9999 !important;
+    width: 100vw !important;
+    height: 100vh !important;
+    max-width: none !important;
+    border-radius: 0 !important;
+    margin: 0 !important;
+    overflow: hidden !important;
+    display: flex !important;
+    flex-direction: column !important;
+}
+
+.map-fullscreen-card #map {
+    height: 100% !important;
+    flex-grow: 1 !important;
+    border-radius: 0 !important;
+}
+
+.map-fullscreen-card .relative {
+    flex-grow: 1 !important;
+    height: 100% !important;
 }
 
 .leaflet-container {
@@ -15,7 +54,9 @@
     background: #f8fafc;
 }
 
+
 /* 2. Custom Leaflet Popup Card */
+
 .leaflet-popup-content-wrapper {
     background: #ffffff;
     border-radius: 1rem;
@@ -34,7 +75,9 @@
     background: #ffffff;
 }
 
+
 /* 3. Radar / Beacon Pulse Animation on Map */
+
 .beacon-marker {
     position: relative;
     display: flex;
@@ -72,13 +115,16 @@
         transform: scale(0.6);
         opacity: 0.9;
     }
-    75%, 100% {
+    75%,
+    100% {
         transform: scale(2.2);
         opacity: 0;
     }
 }
 
+
 /* 4. Tower BTS Marker & Radar Waves (Merah Putih & Multi-Operator) */
+
 .bts-marker {
     position: relative;
     display: flex;
@@ -129,10 +175,13 @@
     }
 }
 
+
 /* 5. Tab Navigation & Interactive Transitions */
+
 .no-scrollbar::-webkit-scrollbar {
     display: none;
 }
+
 .no-scrollbar {
     -ms-overflow-style: none;
     scrollbar-width: none;
@@ -158,13 +207,16 @@
 }
 
 .tab-btn.active-tab {
-    background-color: #0d9488 !important; /* teal-600 */
+    background-color: #0d9488 !important;
+    /* teal-600 */
     color: #ffffff !important;
     border-color: #0f766e !important;
     box-shadow: 0 4px 6px -1px rgba(13, 148, 136, 0.25), 0 2px 4px -2px rgba(13, 148, 136, 0.2);
 }
 
+
 /* 6. Print Media Stylesheet */
+
 @media print {
     header,
     nav,

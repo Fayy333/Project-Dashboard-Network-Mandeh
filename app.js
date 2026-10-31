@@ -28,8 +28,7 @@ const INITIAL_DEMO_DATA = [
 ];
 
 // 2. DATASET MENARA / TOWER BTS SELULER DI KAWASAN MANDEH & SEI NYALO
-const BTS_TOWERS = [
-    {
+const BTS_TOWERS = [{
         id: "bts-merah-putih",
         name: "Tower Merah Putih Bukit Mandeh",
         badge: "Macro BTS Utama (Telkomsel/Telkom Group)",
@@ -96,6 +95,8 @@ const BTS_TOWERS = [
 ];
 
 // 3. STATE VARIABEL APLIKASI
+const FIXED_HISTORICAL_DATA = [...INITIAL_DEMO_DATA];
+
 let activeDataset = [];
 let leafletMap = null;
 let mapMarkersGroup = null;
@@ -195,21 +196,21 @@ function initLiveTimestamp() {
 
 // 5. PENYIMPANAN LOCALSTORAGE
 function loadDatasetFromStorage() {
-    const saved = localStorage.getItem('kkn_mandeh_network_data_white');
+    const saved = localStorage.getItem('kkn_mandeh_network_data_historic');
     if (saved) {
         try {
             activeDataset = JSON.parse(saved);
         } catch (e) {
-            activeDataset = [...INITIAL_DEMO_DATA];
+            activeDataset = [...FIXED_HISTORICAL_DATA];
         }
     } else {
-        activeDataset = [...INITIAL_DEMO_DATA];
+        activeDataset = [...FIXED_HISTORICAL_DATA];
         saveDatasetToStorage();
     }
 }
 
 function saveDatasetToStorage() {
-    localStorage.setItem('kkn_mandeh_network_data_white', JSON.stringify(activeDataset));
+    localStorage.setItem('kkn_mandeh_network_data_historic', JSON.stringify(activeDataset));
 }
 
 // 6. INISIALISASI PETA LEAFLET DENGAN LAYER GOOGLE MAPS & TOWER BTS
@@ -278,37 +279,37 @@ function renderBtsTowers() {
     btsLayerGroup.clearLayers();
 
     BTS_TOWERS.forEach(bts => {
-        const btsLatLng = [bts.lat, bts.lng];
+                const btsLatLng = [bts.lat, bts.lng];
 
-        // 1. Lingkaran Luar: Jangkauan Sinyal Maksimal (Extended Coverage)
-        const outerCircle = L.circle(btsLatLng, {
-            radius: bts.radiusMeters,
-            color: bts.color,
-            weight: 2,
-            dashArray: '6, 8',
-            opacity: 0.8,
-            fillColor: bts.color,
-            fillOpacity: 0.07
-        });
+                // 1. Lingkaran Luar: Jangkauan Sinyal Maksimal (Extended Coverage)
+                const outerCircle = L.circle(btsLatLng, {
+                    radius: bts.radiusMeters,
+                    color: bts.color,
+                    weight: 2,
+                    dashArray: '6, 8',
+                    opacity: 0.8,
+                    fillColor: bts.color,
+                    fillOpacity: 0.07
+                });
 
-        // 2. Lingkaran Dalam: Jangkauan Sinyal Optimal / Kuat (Core High-Throughput Zone)
-        const innerCircle = L.circle(btsLatLng, {
-            radius: bts.optimalRadiusMeters,
-            color: bts.color,
-            weight: 1.5,
-            opacity: 0.9,
-            fillColor: bts.color,
-            fillOpacity: 0.16
-        });
+                // 2. Lingkaran Dalam: Jangkauan Sinyal Optimal / Kuat (Core High-Throughput Zone)
+                const innerCircle = L.circle(btsLatLng, {
+                    radius: bts.optimalRadiusMeters,
+                    color: bts.color,
+                    weight: 1.5,
+                    opacity: 0.9,
+                    fillColor: bts.color,
+                    fillOpacity: 0.16
+                });
 
-        btsLayerGroup.addLayer(outerCircle);
-        btsLayerGroup.addLayer(innerCircle);
+                btsLayerGroup.addLayer(outerCircle);
+                btsLayerGroup.addLayer(innerCircle);
 
-        // 3. Marker Ikon Menara Pemancar Merah Putih
-        const isMerahPutih = bts.id === "bts-merah-putih";
-        const btsIcon = L.divIcon({
-            className: 'custom-bts-marker-wrapper',
-            html: `
+                // 3. Marker Ikon Menara Pemancar Merah Putih
+                const isMerahPutih = bts.id === "bts-merah-putih";
+                const btsIcon = L.divIcon({
+                            className: 'custom-bts-marker-wrapper',
+                            html: `
                 <div class="bts-marker" title="${bts.name}">
                     <div class="bts-wave" style="border-color: ${bts.color};"></div>
                     <div class="${isMerahPutih ? 'bts-core-merah-putih' : 'bts-core-merah-putih'}" style="${!isMerahPutih ? `background: linear-gradient(135deg, ${bts.color} 50%, #ffffff 50%); border-color: ${bts.color};` : ''}">
@@ -1610,11 +1611,11 @@ function parseCSVAndAppend(csvText) {
 }
 
 function resetToDemoData() {
-    activeDataset = [...INITIAL_DEMO_DATA];
+    activeDataset = [...FIXED_HISTORICAL_DATA];
     saveDatasetToStorage();
     populateFilterOptions();
     resetFilters();
-    showToast('Data berhasil dipulihkan ke data demo bawaan Mandeh & Sei Nyalo.');
+    showToast('Data pengukuran historis tahun lalu berhasil dipulihkan.');
 }
 
 function showToast(message, isError = false) {
@@ -1928,72 +1929,104 @@ Data pengukuran menunjukkan rata-rata kualitas sinyal RSRP <strong>${avgRsrp} dB
     }
 
     const letterHtml = `
-        <div style="font-family: 'Times New Roman', serif; max-width: 650px; margin: 0 auto;" class="space-y-5 text-sm">
+        <div id="printableOfficialLetter" style="font-family: 'Times New Roman', Times, serif; color: #000000; background: #ffffff; padding: 32px 36px; max-width: 680px; margin: 0 auto; box-shadow: 0 4px 15px rgba(0,0,0,0.06); border-radius: 8px; line-height: 1.5; font-size: 11pt;">
             <!-- Kop Surat -->
-            <div class="text-center border-b-4 border-double border-slate-800 pb-4 space-y-0.5">
-                <div class="font-bold text-base uppercase tracking-wide">Pemerintah Nagari Sei Nyalo Mudiak Aia</div>
-                <div class="text-sm">Kecamatan Koto XI Tarusan, Kabupaten Pesisir Selatan</div>
-                <div class="text-sm">Provinsi Sumatera Barat</div>
-                <div class="text-xs text-slate-500">Jl. Mandeh No. 1, Kec. Koto XI Tarusan, Kab. Pesisir Selatan 25664</div>
+            <div style="text-align: center; border-bottom: 3px double #000000; padding-bottom: 12px; margin-bottom: 16px;">
+                <div style="font-size: 14pt; font-weight: bold; text-transform: uppercase; letter-spacing: 0.5px;">PEMERINTAH NAGARI SEI NYALO MUDIAK AIA</div>
+                <div style="font-size: 11pt; font-weight: bold;">Kecamatan Koto XI Tarusan, Kabupaten Pesisir Selatan</div>
+                <div style="font-size: 11pt;">Provinsi Sumatera Barat</div>
+                <div style="font-size: 8.5pt; color: #555555; margin-top: 2px;">Jl. Mandeh No. 1, Kec. Koto XI Tarusan, Kab. Pesisir Selatan 25664</div>
             </div>
 
-            <!-- Nomor Surat -->
-            <div class="space-y-1 text-xs">
-                <div class="flex gap-4"><span class="w-24">Nomor</span><span>: ${letterNo}</span></div>
-                <div class="flex gap-4"><span class="w-24">Perihal</span><span>: ${subjectText}</span></div>
-                <div class="flex gap-4"><span class="w-24">Lampiran</span><span>: 1 (satu) berkas Data Pengukuran Sinyal Lapangan</span></div>
-            </div>
+            <!-- Nomor Surat & Informasi Header -->
+            <table style="width: 100%; font-size: 10.5pt; margin-bottom: 14px; border-collapse: collapse;">
+                <tr>
+                    <td style="width: 80px; vertical-align: top;">Nomor</td>
+                    <td style="width: 15px; vertical-align: top;">:</td>
+                    <td style="vertical-align: top; font-weight: bold;">${letterNo}</td>
+                    <td style="text-align: right; vertical-align: top;">Sei Nyalo, ${dateStr}</td>
+                </tr>
+                <tr>
+                    <td style="vertical-align: top;">Lampiran</td>
+                    <td style="vertical-align: top;">:</td>
+                    <td colspan="2" style="vertical-align: top;">1 (satu) berkas Data Pengukuran Sinyal Lapangan</td>
+                </tr>
+                <tr>
+                    <td style="vertical-align: top;">Perihal</td>
+                    <td style="vertical-align: top;">:</td>
+                    <td colspan="2" style="vertical-align: top; font-weight: bold;">${subjectText}</td>
+                </tr>
+            </table>
 
-            <!-- Tanggal & Tujuan -->
-            <div class="space-y-3 text-xs">
-                <div class="text-right">Sei Nyalo, ${dateStr}</div>
-                <div>
-                    <div>Kepada Yth.</div>
-                    <div class="font-bold">${targetFull}</div>
-                    <div>di Tempat</div>
-                </div>
+            <!-- Tujuan Surat -->
+            <div style="font-size: 10.5pt; margin-bottom: 14px; line-height: 1.4;">
+                <div>Kepada Yth.</div>
+                <div style="font-weight: bold;">${targetFull}</div>
+                <div>di Tempat</div>
             </div>
 
             <!-- Salam Pembuka -->
-            <div class="text-xs">Assalamu'alaikum Warahmatullahi Wabarakatuh,</div>
-            <div class="text-xs">Dengan hormat,</div>
+            <div style="font-size: 10.5pt; margin-bottom: 8px;">Assalamu'alaikum Warahmatullahi Wabarakatuh,</div>
+            <div style="font-size: 10.5pt; margin-bottom: 10px;">Dengan hormat,</div>
 
             <!-- Isi Surat -->
-            <div class="text-xs leading-relaxed">${bodyText}</div>
+            <div style="font-size: 10.5pt; text-align: justify; margin-bottom: 12px; line-height: 1.5;">${bodyText}</div>
 
             <!-- Penutup -->
-            <div class="text-xs leading-relaxed">
+            <div style="font-size: 10.5pt; text-align: justify; margin-bottom: 12px; line-height: 1.5;">
                 Sehubungan dengan hal tersebut di atas, kami sangat mengharapkan perhatian dan tindak lanjut dari Bapak/Ibu untuk segera melakukan evaluasi dan intervensi terhadap kondisi infrastruktur jaringan telekomunikasi di kawasan ini, demi mendukung:
-                <ol class="list-decimal list-inside mt-2 space-y-1">
-                    <li>Pengembangan ekonomi digital UMKM dan wisata bahari Kawasan Mandeh;</li>
-                    <li>Peningkatan kualitas layanan publik berbasis digital di tingkat nagari;</li>
-                    <li>Pemerataan akses internet yang merupakan hak konstitusional warga negara.</li>
+                <ol style="margin-top: 6px; margin-bottom: 6px; padding-left: 22px;">
+                    <li style="margin-bottom: 4px;">Pengembangan ekonomi digital UMKM dan wisata bahari Kawasan Mandeh;</li>
+                    <li style="margin-bottom: 4px;">Peningkatan kualitas layanan publik berbasis digital di tingkat nagari;</li>
+                    <li style="margin-bottom: 4px;">Pemerataan akses internet yang merupakan hak konstitusional warga negara.</li>
                 </ol>
             </div>
 
-            <div class="text-xs">Demikian surat rekomendasi ini kami sampaikan. Atas perhatian dan kerja sama yang baik, kami ucapkan terima kasih.</div>
-            <div class="text-xs">Wassalamu'alaikum Warahmatullahi Wabarakatuh.</div>
+            <div style="font-size: 10.5pt; text-align: justify; margin-bottom: 8px;">Demikian surat permohonan dan rekomendasi ini kami sampaikan. Atas perhatian dan kerja sama yang baik, kami ucapkan terima kasih.</div>
+            <div style="font-size: 10.5pt; margin-bottom: 18px;">Wassalamu'alaikum Warahmatullahi Wabarakatuh.</div>
 
             <!-- Tanda Tangan -->
-            <div class="text-xs mt-6 space-y-12">
-                <div class="flex justify-end">
-                    <div class="text-center">
-                        <div>Nagari Sei Nyalo Mudiak Aia, ${dateStr}</div>
-                        <div class="font-bold mt-1">Wali Nagari</div>
-                        <div class="mt-16 font-bold border-t border-slate-800 pt-1 w-48">${waliName}</div>
-                        <div class="text-[10px] text-slate-500">NIP. —</div>
-                    </div>
-                </div>
-                <div class="border-t border-slate-200 pt-3 text-[10px] text-slate-400 text-center">
-                    Dokumen ini dihasilkan secara otomatis oleh Sistem Dashboard Monitoring Jaringan KKN-PPM UGM 2026 &mdash; Data lapangan berdasarkan survei aktual Tim KKN.
-                </div>
+            <table style="width: 100%; font-size: 10.5pt; margin-top: 24px; border-collapse: collapse;">
+                <tr>
+                    <td style="width: 50%; text-align: center; vertical-align: top;">
+                        <div>Mengetahui,</div>
+                        <div style="font-weight: bold;">Koordinator Tim KKN-PPM UGM</div>
+                        <div style="font-size: 9.5pt; color: #444444;">Sub-unit Mandeh &amp; Sei Nyalo</div>
+                        <div style="height: 65px;"></div>
+                        <div style="font-weight: bold; border-top: 1px solid #000000; width: 170px; margin: 0 auto; padding-top: 2px;">Koordinator Lapangan</div>
+                        <div style="font-size: 8.5pt; color: #555555;">NIM. 22/XXXXXX/SV/XXXXX</div>
+                    </td>
+                    <td style="width: 50%; text-align: center; vertical-align: top;">
+                        <div>Nagari Sei Nyalo, ${dateStr}</div>
+                        <div style="font-weight: bold;">Wali Nagari Sei Nyalo Mudiak Aia</div>
+                        <div style="font-size: 9.5pt; color: #444444;">Kec. Koto XI Tarusan</div>
+                        <div style="height: 65px;"></div>
+                        <div style="font-weight: bold; border-top: 1px solid #000000; width: 170px; margin: 0 auto; padding-top: 2px;">${waliName}</div>
+                        <div style="font-size: 8.5pt; color: #555555;">NIP. —</div>
+                    </td>
+                </tr>
+            </table>
+
+            <!-- Tembusan -->
+            <div style="margin-top: 24px; padding-top: 8px; border-top: 1px solid #dddddd; font-size: 8.5pt; color: #444444;">
+                <div style="font-weight: bold;">Tembusan:</div>
+                <ol style="margin-top: 2px; padding-left: 18px; margin-bottom: 0;">
+                    <li>Bupati Pesisir Selatan (sebagai laporan)</li>
+                    <li>Kepala Dinas Komunikasi dan Informatika Kab. Pesisir Selatan</li>
+                    <li>Camat Koto XI Tarusan</li>
+                    <li>Arsip Nagari</li>
+                </ol>
             </div>
         </div>
     `;
 
     const preview = document.getElementById('letterPreview');
-    if (preview) preview.innerHTML = letterHtml;
-    if (typeof showToast === 'function') showToast('Surat Rekomendasi berhasil dibuat! Klik Simpan PDF untuk mengunduh.');
+    if (preview) {
+        preview.innerHTML = letterHtml;
+        // Scroll otomatis ke pratinjau surat
+        preview.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    }
+    if (typeof showToast === 'function') showToast('Surat Rekomendasi berhasil ditampilkan! Silakan pilih Unduh Word atau PDF.');
 }
 
 
@@ -2077,5 +2110,235 @@ function openMapsCurrentLocation() {
         window.open(url, '_blank');
     } else {
         window.open('https://www.google.com/maps/search/?api=1&query=-1.185000,100.415000', '_blank');
+    }
+}
+
+
+// ============================================================
+// FITUR LEBARKAN PETA (FULLSCREEN / EXPAND VIEW)
+// ============================================================
+let isMapExpanded = false;
+
+function toggleMapFullscreen() {
+    const card = document.getElementById('mapCardContainer');
+    const icon = document.getElementById('iconMapFullscreen');
+    const text = document.getElementById('textMapFullscreen');
+    const btn = document.getElementById('btnMapFullscreen');
+    if (!card) return;
+
+    isMapExpanded = !isMapExpanded;
+
+    if (isMapExpanded) {
+        card.classList.add('map-fullscreen-card');
+        document.body.classList.add('overflow-hidden');
+        if (icon) {
+            icon.classList.remove('fa-expand');
+            icon.classList.add('fa-compress');
+        }
+        if (text) text.textContent = 'Kecilkan';
+        if (btn) {
+            btn.classList.remove('bg-slate-100', 'text-slate-700');
+            btn.classList.add('bg-teal-600', 'text-white', 'border-teal-600');
+        }
+        if (typeof showToast === 'function') showToast('Peta dilebarkan ke layar penuh (Tekan Esc untuk keluar).');
+    } else {
+        card.classList.remove('map-fullscreen-card');
+        document.body.classList.remove('overflow-hidden');
+        if (icon) {
+            icon.classList.remove('fa-compress');
+            icon.classList.add('fa-expand');
+        }
+        if (text) text.textContent = 'Lebarkan';
+        if (btn) {
+            btn.classList.add('bg-slate-100', 'text-slate-700');
+            btn.classList.remove('bg-teal-600', 'text-white', 'border-teal-600');
+        }
+    }
+
+    // Invalidate size agar leaflet menyesuaikan dimensi layar baru
+    setTimeout(() => {
+        if (typeof leafletMap !== 'undefined' && leafletMap) {
+            leafletMap.invalidateSize();
+            if (activeDataset && activeDataset.length > 0) {
+                const bounds = activeDataset.map(d => [d.lat, d.lng]);
+                leafletMap.fitBounds(bounds, { padding: [50, 50], animate: true });
+            }
+        }
+    }, 200);
+}
+
+// Tutup fullscreen saat tekan ESC
+document.addEventListener('keydown', function(e) {
+    if (e.key === 'Escape' && isMapExpanded) {
+        toggleMapFullscreen();
+    }
+});
+
+
+// ============================================================
+// TOGGLE INDIKATOR SINYAL RSRP (FLOATING LEGEND)
+// ============================================================
+let isLegendVisible = true;
+
+function toggleMapLegend() {
+    const legend = document.getElementById('mapSignalLegend');
+    const btn = document.getElementById('btnToggleLegend');
+    const text = document.getElementById('textToggleLegend');
+    if (!legend) return;
+
+    isLegendVisible = !isLegendVisible;
+
+    if (isLegendVisible) {
+        legend.classList.remove('hidden');
+        if (btn) {
+            btn.classList.remove('bg-slate-100', 'text-slate-600', 'border-slate-300');
+            btn.classList.add('bg-teal-50', 'text-teal-700', 'border-teal-200');
+        }
+        if (text) text.textContent = 'Indikator Sinyal';
+        if (typeof showToast === 'function') showToast('Indikator sinyal ditampilkan.');
+    } else {
+        legend.classList.add('hidden');
+        if (btn) {
+            btn.classList.remove('bg-teal-50', 'text-teal-700', 'border-teal-200');
+            btn.classList.add('bg-slate-100', 'text-slate-600', 'border-slate-300');
+        }
+        if (text) text.textContent = 'Indikator (Sembunyi)';
+        if (typeof showToast === 'function') showToast('Indikator sinyal disembunyikan agar tampilan peta lebih leluasa.');
+    }
+}
+
+// ============================================================
+// GENERATOR & DOWNLOAD DOKUMEN PDF & WORD (TANPA DIALOG PRINT)
+// ============================================================
+function downloadLetterPDF() {
+    // Pastikan surat sudah di-generate
+    const checkEl = document.getElementById('printableOfficialLetter');
+    if (!checkEl) {
+        generateLetter();
+    }
+    
+    const targetElement = document.getElementById('printableOfficialLetter');
+    if (!targetElement) return;
+
+    const letterNo = (document.getElementById('letterNumber') || {}).value || 'Surat_Rekomendasi';
+    const cleanFileName = `Surat_Rekomendasi_Mandeh_${letterNo.replace(/[^a-zA-Z0-9]/g, '_')}.pdf`;
+
+    // Clone element dan buat wrapper di luar viewport agar styling 100% utuh tanpa pengaruh scroll/overflow
+    const clone = targetElement.cloneNode(true);
+    clone.style.width = '700px';
+    clone.style.maxWidth = '700px';
+    clone.style.boxShadow = 'none';
+    clone.style.margin = '0';
+    clone.style.padding = '24px 30px';
+    clone.style.background = '#ffffff';
+
+    const container = document.createElement('div');
+    container.style.position = 'fixed';
+    container.style.top = '-9999px';
+    container.style.left = '0';
+    container.style.width = '700px';
+    container.style.background = '#ffffff';
+    container.style.zIndex = '-9999';
+    container.appendChild(clone);
+    document.body.appendChild(container);
+
+    const opt = {
+        margin:       [8, 10, 8, 10],
+        filename:     cleanFileName,
+        image:        { type: 'jpeg', quality: 0.98 },
+        html2canvas:  { 
+            scale: 2, 
+            useCORS: true, 
+            letterRendering: true,
+            scrollY: 0,
+            scrollX: 0
+        },
+        jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' }
+    };
+
+    if (typeof showToast === 'function') showToast('Sedang memproses dan mengunduh berkas PDF resmi...');
+
+    if (typeof html2pdf !== 'undefined') {
+        html2pdf().set(opt).from(clone).save().then(() => {
+            document.body.removeChild(container);
+            if (typeof showToast === 'function') showToast('File PDF Surat Rekomendasi berhasil diunduh!');
+        }).catch(err => {
+            console.error('PDF error:', err);
+            document.body.removeChild(container);
+            window.print();
+        });
+    } else {
+        document.body.removeChild(container);
+        window.print();
+    }
+}
+
+// Download Dokumen Surat Format Microsoft Word (.doc)
+function downloadLetterWord() {
+    const checkEl = document.getElementById('printableOfficialLetter');
+    if (!checkEl) {
+        generateLetter();
+    }
+
+    const targetElement = document.getElementById('printableOfficialLetter');
+    if (!targetElement) return;
+
+    const letterNo = (document.getElementById('letterNumber') || {}).value || 'Surat_Rekomendasi';
+    const cleanFileName = `Surat_Rekomendasi_Mandeh_${letterNo.replace(/[^a-zA-Z0-9]/g, '_')}.doc`;
+
+    // Buat header HTML yang kompatibel dengan Microsoft Word
+    const header = `<html xmlns:o='urn:schemas-microsoft-com:office:office' ` +
+                   `xmlns:w='urn:schemas-microsoft-com:office:word' ` +
+                   `xmlns='http://www.w3.org/TR/REC-html40'>` +
+                   `<head><meta charset='utf-8'><title>Surat Rekomendasi</title>` +
+                   `<style>` +
+                   `@page Section1 {size:595.3pt 841.9pt; margin:72.0pt 72.0pt 72.0pt 72.0pt; mso-header-margin:35.4pt; mso-footer-margin:35.4pt; mso-paper-source:0;}` +
+                   `div.Section1 {page:Section1;}` +
+                   `body {font-family: 'Times New Roman', serif; font-size: 11pt; line-height: 1.5; color: #000;}` +
+                   `table {border-collapse: collapse; width: 100%;}` +
+                   `</style></head><body><div class="Section1">`;
+    const footer = `</div></body></html>`;
+
+    const sourceHTML = header + targetElement.innerHTML + footer;
+    const blob = new Blob(['\ufeff', sourceHTML], {
+        type: 'application/msword'
+    });
+
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = cleanFileName;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
+
+    if (typeof showToast === 'function') showToast('Berkas Microsoft Word (.doc) berhasil diunduh!');
+}
+
+function downloadReportPDF() {
+    // Buat container terisolasi untuk cetak laporan teknis ringkasan
+    const summaryContainer = document.querySelector('#tab-report .bg-white') || document.getElementById('tab-report');
+    if (!summaryContainer) return;
+
+    const opt = {
+        margin:       [10, 10, 10, 10],
+        filename:     `Laporan_Teknis_Jaringan_Mandeh_${new Date().toISOString().substring(0, 10)}.pdf`,
+        image:        { type: 'jpeg', quality: 0.98 },
+        html2canvas:  { scale: 2, useCORS: true },
+        jsPDF:        { unit: 'mm', format: 'a4', orientation: 'landscape' }
+    };
+
+    if (typeof showToast === 'function') showToast('Sedang memproses unduhan PDF Laporan...');
+
+    if (typeof html2pdf !== 'undefined') {
+        html2pdf().set(opt).from(summaryContainer).save().then(() => {
+            if (typeof showToast === 'function') showToast('File PDF Laporan Teknis berhasil diunduh!');
+        }).catch(err => {
+            console.error('PDF error:', err);
+            window.print();
+        });
+    } else {
+        window.print();
     }
 }
