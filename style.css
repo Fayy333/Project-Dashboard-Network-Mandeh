@@ -3,7 +3,67 @@
    ========================================================================== */
 
 
-/* 1. Map Container & Leaflet Customization */
+/* 1. Top-right main menu */
+
+#mainMenuContainer {
+    position: fixed !important;
+    top: 8px !important;
+    right: 8px !important;
+    padding: 0 !important;
+    z-index: 1700 !important;
+}
+
+#mainMenuButton {
+    width: 44px;
+    height: 44px;
+}
+
+#mainMenuDropdown {
+    position: fixed !important;
+    top: 0 !important;
+    right: 0 !important;
+    height: 100dvh;
+    background: #ffffff !important;
+    opacity: 1;
+    filter: none;
+    backdrop-filter: none;
+    overflow: hidden;
+    overscroll-behavior: contain;
+}
+
+#mainMenuDropdown:not(.translate-x-full) {
+    visibility: visible;
+    pointer-events: auto;
+}
+
+#mainMenuDropdown.translate-x-full {
+    visibility: hidden !important;
+    display: none !important;
+    pointer-events: none !important;
+}
+
+#mainMenuDropdown>.flex-grow {
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: thin;
+    scrollbar-color: #94a3b8 transparent;
+}
+
+#mainMenuDropdown::-webkit-scrollbar {
+    width: 6px;
+}
+
+#mainMenuDropdown::-webkit-scrollbar-thumb {
+    background: #94a3b8;
+    border-radius: 999px;
+}
+
+#mainMenuDropdown::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+
+/* Map Container & Leaflet Customization */
 
 #map {
     width: 100%;

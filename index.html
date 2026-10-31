@@ -98,51 +98,108 @@
                 </div>
             </div>
 
-            <!-- Quick Actions -->
-            <div class="flex flex-wrap items-center justify-end gap-2 w-full lg:w-auto no-print">
-                <button onclick="openEarthModal()" class="px-3.5 py-2 bg-gradient-to-r from-blue-600 via-teal-600 to-emerald-600 hover:from-blue-700 hover:via-teal-700 hover:to-emerald-700 text-white text-xs font-semibold rounded-xl shadow-md shadow-teal-500/20 transition flex items-center gap-2 transform active:scale-95"
-                    title="Hubungkan ke Google Earth 3D atau Google Maps">
-                    <span class="flex items-center gap-1.5">
-                        <i class="fa-solid fa-earth-americas text-cyan-200"></i>
-                        <i class="fa-solid fa-location-dot text-emerald-200"></i>
-                    </span>
-                    <span>Google Earth &amp; Maps</span>
-                </button>
-                <button onclick="openAddModal()" class="px-3.5 py-2 bg-teal-600 hover:bg-teal-700 text-white text-xs font-semibold rounded-xl shadow-md shadow-teal-600/20 transition flex items-center gap-2 transform active:scale-95">
-                    <i class="fa-solid fa-plus-circle"></i> Input GPS
-                </button>
-                <button onclick="triggerCSVUpload()" class="px-3 py-2 bg-white hover:bg-slate-100 text-slate-700 border border-slate-300 text-xs font-medium rounded-xl transition flex items-center gap-2">
-                    <i class="fa-solid fa-file-arrow-up text-teal-600"></i> Import CSV
-                </button>
+            <!-- Main Menu -->
+            <div id="mainMenuOverlay" onclick="closeMainMenu()" class="fixed inset-0 bg-slate-900/40 z-[1400] hidden transition-opacity"></div>
+            <div id="mainMenuContainer" class="fixed z-[1700] no-print">
                 <input type="file" id="csvFileInput" accept=".csv" class="hidden" onchange="handleCSVImport(event)">
 
-                <!-- Export Menu -->
-                <div class="relative inline-block text-left group">
-                    <button class="px-3 py-2 bg-white hover:bg-slate-100 text-slate-700 border border-slate-300 text-xs font-medium rounded-xl transition flex items-center gap-1.5">
-                        <i class="fa-solid fa-download text-teal-600"></i> Ekspor <i class="fa-solid fa-chevron-down text-[10px] text-slate-400"></i>
+                <div class="relative">
+                    <button id="mainMenuButton" onclick="toggleMainMenu()" class="relative w-11 h-11 flex items-center justify-center bg-white/95 hover:bg-slate-100 text-slate-700 border border-slate-300 rounded-full shadow-md transition" title="Buka menu navigasi utama"
+                        aria-label="Menu navigasi utama">
+                        <i class="fa-solid fa-ellipsis-vertical text-base"></i>
                     </button>
-                    <div class="absolute right-0 mt-1 w-52 bg-white border border-slate-200 rounded-xl shadow-xl py-1.5 hidden group-hover:block z-50">
-                        <button onclick="exportKMLGoogleEarth()" class="w-full text-left px-3.5 py-2 text-xs text-slate-700 hover:bg-blue-50 hover:text-blue-700 flex items-center gap-2">
-                            <i class="fa-solid fa-earth-asia text-blue-600"></i> Ekspor File KML (Google Earth)
-                        </button>
-                        <button onclick="exportRawCSV()" class="w-full text-left px-3.5 py-2 text-xs text-slate-700 hover:bg-slate-100 flex items-center gap-2">
-                            <i class="fa-solid fa-file-csv text-teal-600"></i> Raw CSV Lengkap
-                        </button>
-                        <button onclick="exportSummaryCSV()" class="w-full text-left px-3.5 py-2 text-xs text-slate-700 hover:bg-slate-100 flex items-center gap-2">
-                            <i class="fa-solid fa-table text-cyan-600"></i> Ringkasan Wilayah CSV
-                        </button>
-                        <button onclick="downloadReportPDF()" class="w-full text-left px-3.5 py-2 text-xs text-slate-700 hover:bg-slate-100 flex items-center gap-2 border-t border-slate-100">
-                            <i class="fa-solid fa-file-pdf text-rose-600"></i> Unduh Laporan (PDF)
-                        </button>
+
+                    <div id="mainMenuDropdown" class="fixed top-0 right-0 h-full w-80 max-w-[92vw] bg-white shadow-2xl z-[1600] transform translate-x-full transition-transform duration-300 ease-in-out flex flex-col invisible pointer-events-none">
+                        <div class="flex items-center justify-between px-5 py-4 border-b border-slate-200 bg-gradient-to-r from-teal-600 to-teal-700">
+                            <div class="flex items-center gap-2 text-white">
+                                <i class="fa-solid fa-bars text-teal-200"></i>
+                                <span class="font-bold text-sm">Menu Navigasi</span>
+                            </div>
+                            <button onclick="closeMainMenu()" class="w-8 h-8 flex items-center justify-center rounded-xl bg-white/20 hover:bg-white/30 text-white transition" aria-label="Tutup menu">
+                                <i class="fa-solid fa-xmark text-sm"></i>
+                            </button>
+                        </div>
+                        <div class="flex-grow overflow-y-auto p-3 space-y-1.5">
+                            <button onclick="switchTab('map'); toggleMainMenu();" id="nav-map" class="tab-btn active-tab w-full text-left px-3 py-2.5 rounded-xl border border-teal-600 bg-teal-600 text-white shadow-sm flex items-center justify-between gap-2 whitespace-nowrap">
+                                <span class="flex items-center gap-2"><i class="fa-solid fa-map-location-dot"></i> Peta &amp; Menara BTS</span>
+                                <span class="px-1.5 py-0.5 rounded-full text-[10px] bg-red-100 text-red-700 font-bold border border-red-200">4 BTS</span>
+                            </button>
+                            <button onclick="switchTab('overview'); toggleMainMenu();" id="nav-overview" class="tab-btn w-full text-left px-3 py-2.5 rounded-xl border border-slate-200 bg-white text-slate-600 hover:text-slate-900 flex items-center gap-2 whitespace-nowrap">
+                                <i class="fa-solid fa-chart-pie"></i>
+                                <span>Ringkasan &amp; KPI</span>
+                            </button>
+                            <button onclick="switchTab('analytics'); toggleMainMenu();" id="nav-analytics" class="tab-btn w-full text-left px-3 py-2.5 rounded-xl border border-slate-200 bg-white text-slate-600 hover:text-slate-900 flex items-center gap-2 whitespace-nowrap">
+                                <i class="fa-solid fa-chart-line"></i>
+                                <span>Grafik &amp; Throughput</span>
+                            </button>
+                            <button onclick="switchTab('crud'); toggleMainMenu();" id="nav-crud" class="tab-btn w-full text-left px-3 py-2.5 rounded-xl border border-slate-200 bg-white text-slate-600 hover:text-slate-900 flex items-center justify-between gap-2 whitespace-nowrap">
+                                <span class="flex items-center gap-2"><i class="fa-solid fa-database"></i> Kelola Data Log</span>
+                                <span id="navLogCountBadge" class="px-1.5 py-0.5 rounded-full text-[10px] bg-teal-100 text-teal-800 font-bold">14</span>
+                            </button>
+                            <button onclick="switchTab('report'); toggleMainMenu();" id="nav-report" class="tab-btn w-full text-left px-3 py-2.5 rounded-xl border border-slate-200 bg-white text-slate-600 hover:text-slate-900 flex items-center gap-2 whitespace-nowrap">
+                                <i class="fa-solid fa-table-cells"></i>
+                                <span>Laporan Teknis Wilayah</span>
+                            </button>
+                            <button onclick="switchTab('earth'); toggleMainMenu();" id="nav-earth" class="tab-btn w-full text-left px-3 py-2.5 rounded-xl border border-slate-200 bg-white text-slate-600 hover:text-slate-900 flex items-center gap-2 whitespace-nowrap">
+                                <i class="fa-solid fa-earth-americas text-blue-500"></i>
+                                <span>Hub Google Earth 3D</span>
+                            </button>
+                            <button onclick="switchTab('recommender'); toggleMainMenu();" id="nav-recommender" class="tab-btn w-full text-left px-3 py-2.5 rounded-xl border border-slate-200 bg-white text-slate-600 hover:text-slate-900 flex items-center gap-2 whitespace-nowrap">
+                                <i class="fa-solid fa-lightbulb text-amber-500"></i>
+                                <span>Rekomendasi Spot</span>
+                            </button>
+                            <button onclick="switchTab('qrcode'); toggleMainMenu();" id="nav-qrcode" class="tab-btn w-full text-left px-3 py-2.5 rounded-xl border border-slate-200 bg-white text-slate-600 hover:text-slate-900 flex items-center gap-2 whitespace-nowrap">
+                                <i class="fa-solid fa-qrcode text-slate-600"></i>
+                                <span>QR Crowdsourcing</span>
+                            </button>
+                            <button onclick="switchTab('report-letter'); toggleMainMenu();" id="nav-report-letter" class="tab-btn w-full text-left px-3 py-2.5 rounded-xl border border-slate-200 bg-white text-slate-600 hover:text-slate-900 flex items-center gap-2 whitespace-nowrap">
+                                <i class="fa-solid fa-file-signature text-rose-500"></i>
+                                <span>Surat Rekomendasi</span>
+                            </button>
+                            <div class="border-t border-slate-100 pt-2 mt-2 space-y-1.5">
+                                <button onclick="toggleMainMenu(); openFilterPanel();" class="w-full text-left px-3 py-2.5 rounded-xl border border-slate-200 bg-white text-slate-700 hover:bg-teal-50 hover:text-teal-700 hover:border-teal-300 flex items-center gap-2">
+                                <i class="fa-solid fa-sliders text-sm"></i>
+                                <span>Filter Parameter</span>
+                            </button>
+                                <button onclick="toggleMainMenu(); openEarthModal();" class="w-full text-left px-3 py-2.5 rounded-xl border border-slate-200 bg-white text-slate-700 hover:bg-blue-50 flex items-center gap-2">
+                                <i class="fa-solid fa-earth-americas text-blue-600"></i>
+                                <span>Google Earth &amp; Maps</span>
+                            </button>
+                                <button onclick="toggleMainMenu(); resetToDemoData();" class="w-full text-left px-3 py-2.5 rounded-xl border border-rose-200 bg-rose-50 text-rose-700 hover:bg-rose-100 flex items-center gap-2">
+                                <i class="fa-solid fa-rotate-left"></i>
+                                <span>Pulihkan Data Bawaan</span>
+                            </button>
+                            </div>
+                        </div>
+                        <div class="px-4 py-3 border-t border-slate-100 bg-slate-50">
+                            <button onclick="closeMainMenu()" class="w-full py-2.5 bg-teal-600 hover:bg-teal-700 text-white text-xs font-bold rounded-xl transition flex items-center justify-center gap-2">
+                                <i class="fa-solid fa-xmark"></i> Tutup Menu
+                            </button>
+                        </div>
                     </div>
                 </div>
-
-                <button onclick="resetToDemoData()" class="px-3 py-2 bg-rose-50 hover:bg-rose-100 text-rose-600 border border-rose-200 text-xs font-medium rounded-xl transition" title="Pulihkan data bawaan Mandeh">
-                    <i class="fa-solid fa-rotate-left"></i>
-                </button>
             </div>
         </div>
+        </div>
     </header>
+
+    <!-- Quick Actions Bar -->
+    <div class="bg-white border-b border-slate-200 no-print">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-2.5 flex flex-wrap items-center gap-2 overflow-x-auto no-scrollbar">
+            <button onclick="openAddModal()" class="px-3 py-2 bg-teal-600 hover:bg-teal-700 text-white text-xs font-semibold rounded-xl shadow-sm flex items-center gap-2 shrink-0 transition">
+                <i class="fa-solid fa-plus-circle"></i> Input GPS
+            </button>
+            <button onclick="triggerCSVUpload()" class="px-3 py-2 bg-white hover:bg-slate-100 text-slate-700 border border-slate-300 text-xs font-medium rounded-xl flex items-center gap-2 shrink-0 transition">
+                <i class="fa-solid fa-file-arrow-up text-teal-600"></i> Import CSV
+            </button>
+            <button onclick="exportRawCSV()" class="px-3 py-2 bg-white hover:bg-slate-100 text-slate-700 border border-slate-300 text-xs font-medium rounded-xl flex items-center gap-2 shrink-0 transition">
+                <i class="fa-solid fa-file-csv text-cyan-600"></i> Ekspor CSV
+            </button>
+            <button onclick="downloadReportPDF()" class="px-3 py-2 bg-white hover:bg-slate-100 text-slate-700 border border-slate-300 text-xs font-medium rounded-xl flex items-center gap-2 shrink-0 transition">
+                <i class="fa-solid fa-file-pdf text-rose-600"></i> Unduh Laporan PDF
+            </button>
+        </div>
+    </div>
 
     <!-- ================================================================ -->
     <!-- FILTER PANEL (Hamburger Slide-In dari kanan)                    -->
@@ -221,61 +278,6 @@
         </div>
     </div>
 
-    <!-- Sticky Tab Navigation Menu Bar -->
-    <nav class="bg-white/95 backdrop-blur-md border-b border-slate-200 sticky top-0 sm:top-[69px] z-30 shadow-xs">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div class="flex items-center gap-1.5 sm:gap-2 py-2.5 overflow-x-auto no-scrollbar text-xs font-semibold">
-                <button onclick="switchTab('map')" id="nav-map" class="tab-btn active-tab px-3.5 sm:px-4 py-2 rounded-xl border border-teal-600 bg-teal-600 text-white shadow-sm flex items-center gap-2 whitespace-nowrap">
-                    <i class="fa-solid fa-map-location-dot"></i>
-                    <span>Peta & Menara BTS</span>
-                    <span class="px-1.5 py-0.5 rounded-full text-[10px] bg-red-100 text-red-700 font-bold border border-red-200">4 BTS</span>
-                </button>
-                <button onclick="switchTab('overview')" id="nav-overview" class="tab-btn px-3.5 sm:px-4 py-2 rounded-xl border border-slate-200 bg-white text-slate-600 hover:text-slate-900 flex items-center gap-2 whitespace-nowrap">
-                    <i class="fa-solid fa-chart-pie"></i>
-                    <span>Ringkasan & KPI</span>
-                </button>
-                <button onclick="switchTab('analytics')" id="nav-analytics" class="tab-btn px-3.5 sm:px-4 py-2 rounded-xl border border-slate-200 bg-white text-slate-600 hover:text-slate-900 flex items-center gap-2 whitespace-nowrap">
-                    <i class="fa-solid fa-chart-line"></i>
-                    <span>Grafik & Throughput</span>
-                </button>
-                <button onclick="switchTab('crud')" id="nav-crud" class="tab-btn px-3.5 sm:px-4 py-2 rounded-xl border border-slate-200 bg-white text-slate-600 hover:text-slate-900 flex items-center gap-2 whitespace-nowrap">
-                    <i class="fa-solid fa-database"></i>
-                    <span>Kelola Data Log (CRUD)</span>
-                    <span id="navLogCountBadge" class="px-1.5 py-0.5 rounded-full text-[10px] bg-teal-100 text-teal-800 font-bold">14</span>
-                </button>
-                <button onclick="switchTab('report')" id="nav-report" class="tab-btn px-3.5 sm:px-4 py-2 rounded-xl border border-slate-200 bg-white text-slate-600 hover:text-slate-900 flex items-center gap-2 whitespace-nowrap">
-                    <i class="fa-solid fa-table-cells"></i>
-                    <span>Laporan Teknis Wilayah</span>
-                </button>
-                <button onclick="switchTab('earth')" id="nav-earth" class="tab-btn px-3.5 sm:px-4 py-2 rounded-xl border border-slate-200 bg-white text-slate-600 hover:text-slate-900 flex items-center gap-2 whitespace-nowrap">
-                    <i class="fa-solid fa-earth-americas text-blue-500"></i>
-                    <span>Hub Google Earth 3D</span>
-                </button>
-                <button onclick="switchTab('recommender')" id="nav-recommender" class="tab-btn px-3.5 sm:px-4 py-2 rounded-xl border border-slate-200 bg-white text-slate-600 hover:text-slate-900 flex items-center gap-2 whitespace-nowrap">
-                    <i class="fa-solid fa-lightbulb text-amber-500"></i>
-                    <span>Rekomendasi Spot</span>
-                </button>
-                <button onclick="switchTab('qrcode')" id="nav-qrcode" class="tab-btn px-3.5 sm:px-4 py-2 rounded-xl border border-slate-200 bg-white text-slate-600 hover:text-slate-900 flex items-center gap-2 whitespace-nowrap">
-                    <i class="fa-solid fa-qrcode text-slate-600"></i>
-                    <span>QR Crowdsourcing</span>
-                </button>
-                <button onclick="switchTab('report-letter')" id="nav-report-letter" class="tab-btn px-3.5 sm:px-4 py-2 rounded-xl border border-slate-200 bg-white text-slate-600 hover:text-slate-900 flex items-center gap-2 whitespace-nowrap">
-                    <i class="fa-solid fa-file-signature text-rose-500"></i>
-                    <span>Surat Rekomendasi</span>
-                </button>
-
-                <!-- SEPARATOR -->
-                <div class="h-6 w-px bg-slate-200 mx-1 shrink-0"></div>
-
-                <!-- HAMBURGER FILTER BUTTON (3 Garis) -->
-                <button onclick="toggleFilterPanel()" id="btnHamburgerFilter" title="Buka Menu Filter Parameter" class="relative shrink-0 px-3 py-2 flex items-center gap-1.5 rounded-xl border border-slate-200 bg-white text-slate-700 hover:bg-teal-50 hover:text-teal-700 hover:border-teal-300 transition shadow-xs">
-                    <i class="fa-solid fa-bars text-sm"></i>
-                    <span class="text-xs font-semibold hidden sm:inline">Filter</span>
-                    <span id="filterActiveDot" class="hidden absolute top-1 right-1 w-2.5 h-2.5 rounded-full bg-teal-500 border-2 border-white"></span>
-                </button>
-            </div>
-        </div>
-    </nav>
 
     <!-- Main Container -->
     <main class="flex-grow max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-6">
@@ -1036,16 +1038,16 @@
     </div>
 
     <!-- Modal Form Add -->
-    <div id="addModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm hidden z-[2000] flex items-center justify-center p-4 overflow-y-auto no-print">
-        <div class="bg-white rounded-3xl max-w-lg w-full shadow-2xl border border-slate-200 overflow-hidden my-8 transform transition-all">
-            <div class="bg-gradient-to-r from-teal-700 via-teal-800 to-slate-900 px-6 py-4 text-white flex justify-between items-center">
+    <div id="addModal" onclick="if(event.target === this) closeAddModal()" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm hidden z-[2000] flex items-center justify-center p-3 sm:p-4 overflow-y-auto no-print">
+        <div class="bg-white rounded-2xl max-w-sm w-full max-h-[88vh] shadow-2xl border border-slate-200 overflow-hidden my-2 transform transition-all flex flex-col">
+            <div class="bg-gradient-to-r from-teal-700 via-teal-800 to-slate-900 px-5 py-3 text-white flex justify-between items-center shrink-0">
                 <h3 class="font-bold text-sm sm:text-base flex items-center gap-2">
                     <i class="fa-solid fa-satellite-dish text-teal-300"></i> Form Input Log Pengukuran Sinyal
                 </h3>
                 <button onclick="closeAddModal()" class="text-slate-300 hover:text-white text-lg"><i class="fa-solid fa-xmark"></i></button>
             </div>
 
-            <form id="addDataForm" onsubmit="handleFormSubmit(event)" class="p-6 space-y-4 text-xs text-slate-700">
+            <form id="addDataForm" onsubmit="handleFormSubmit(event)" class="p-3 space-y-2.5 text-xs text-slate-700 overflow-y-auto min-h-0">
                 <div>
                     <label class="block font-semibold text-slate-800 mb-1">Nama Wilayah / Spot Lokasi</label>
                     <input type="text" id="inputLocation" required placeholder="Contoh: Dermaga Nagari Sei Nyalo" class="w-full p-2.5 bg-slate-50 border border-slate-300 rounded-xl text-slate-800 focus:ring-2 focus:ring-teal-500 focus:outline-none">

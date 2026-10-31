@@ -2033,6 +2033,54 @@ Data pengukuran menunjukkan rata-rata kualitas sinyal RSRP <strong>${avgRsrp} dB
 // ============================================================
 // FILTER PANEL (HAMBURGER 3 GARIS) HANDLERS
 // ============================================================
+function toggleMainMenu() {
+    const menu = document.getElementById('mainMenuDropdown');
+    const overlay = document.getElementById('mainMenuOverlay');
+    if (!menu || !overlay) return;
+
+    if (menu.classList.contains('translate-x-full')) {
+        openMainMenu();
+    } else {
+        closeMainMenu();
+    }
+}
+
+function openMainMenu() {
+    const menu = document.getElementById('mainMenuDropdown');
+    const overlay = document.getElementById('mainMenuOverlay');
+    if (!menu || !overlay) return;
+
+    overlay.classList.remove('hidden');
+    menu.classList.remove('translate-x-full', 'invisible', 'pointer-events-none');
+    menu.style.visibility = 'visible';
+    menu.style.pointerEvents = 'auto';
+    document.body.classList.add('overflow-hidden');
+}
+
+function closeMainMenu() {
+    const menu = document.getElementById('mainMenuDropdown');
+    const overlay = document.getElementById('mainMenuOverlay');
+    if (!menu || !overlay) return;
+
+    menu.classList.add('translate-x-full', 'invisible', 'pointer-events-none');
+    menu.style.visibility = 'hidden';
+    menu.style.pointerEvents = 'none';
+    overlay.classList.add('hidden');
+    document.body.classList.remove('overflow-hidden');
+}
+
+document.addEventListener('keydown', (event) => {
+    if (event.key !== 'Escape') return;
+
+    const mainMenu = document.getElementById('mainMenuDropdown');
+    if (mainMenu && !mainMenu.classList.contains('translate-x-full')) {
+        closeMainMenu();
+        return;
+    }
+
+    if (typeof closeAddModal === 'function') closeAddModal();
+});
+
 function toggleFilterPanel() {
     const panel = document.getElementById('filterPanel');
     const overlay = document.getElementById('filterOverlay');
