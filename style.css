@@ -5,6 +5,13 @@
 
 /* 1. Top-right main menu */
 
+header,
+header * {
+    backdrop-filter: none !important;
+    filter: none !important;
+    text-shadow: none !important;
+}
+
 #mainMenuContainer {
     position: fixed !important;
     top: 8px !important;
@@ -16,6 +23,13 @@
 #mainMenuButton {
     width: 44px;
     height: 44px;
+}
+
+#mainMenuOverlay {
+    background: transparent !important;
+    opacity: 1 !important;
+    backdrop-filter: none !important;
+    filter: none !important;
 }
 
 #mainMenuDropdown {

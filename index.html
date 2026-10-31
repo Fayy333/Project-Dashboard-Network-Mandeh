@@ -73,11 +73,11 @@
     <div class="h-1.5 w-full bg-gradient-to-r from-teal-500 via-cyan-500 to-ocean-600 shadow-sm"></div>
 
     <!-- Header Navigation -->
-    <header class="bg-white/95 backdrop-blur-md border-b border-slate-200/80 sticky top-0 z-40 shadow-sm">
+    <header class="bg-white border-b border-slate-200/80 sticky top-0 z-40 shadow-sm">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3.5 flex flex-col lg:flex-row justify-between items-center gap-4">
 
             <!-- Branding -->
-            <div class="flex items-center gap-3.5 w-full lg:w-auto">
+            <div class="flex items-center gap-3.5 w-full lg:w-auto" style="backdrop-filter:none; filter:none;">
                 <div class="w-11 h-11 rounded-2xl bg-gradient-to-tr from-teal-600 to-cyan-600 flex items-center justify-center text-white shadow-md shadow-teal-500/20 shrink-0">
                     <i class="fa-solid fa-tower-broadcast text-xl animate-pulse"></i>
                 </div>
@@ -99,7 +99,7 @@
             </div>
 
             <!-- Main Menu -->
-            <div id="mainMenuOverlay" onclick="closeMainMenu()" class="fixed inset-0 bg-slate-900/40 z-[1400] hidden transition-opacity"></div>
+            <div id="mainMenuOverlay" onclick="closeMainMenu()" class="fixed inset-0 bg-transparent z-[1400] hidden transition-opacity"></div>
             <div id="mainMenuContainer" class="fixed z-[1700] no-print">
                 <input type="file" id="csvFileInput" accept=".csv" class="hidden" onchange="handleCSVImport(event)">
 
